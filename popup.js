@@ -84,11 +84,11 @@ document.getElementById("opacity").addEventListener("input", () => {
 
 document.getElementById("camera").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "camera" }, (response) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "camera"}, (response) => {
       if (response?.url) {
         const a = document.createElement('a');
         a.href = response.url;
-        a.download = 'screenshot.png';
+        a.download = tabs[0].title + '.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
