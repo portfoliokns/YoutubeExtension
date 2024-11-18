@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Video Modifier",
+  "version": "1.0",
+  "permissions": ["scripting", "activeTab"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
