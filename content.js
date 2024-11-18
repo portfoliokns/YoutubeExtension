@@ -51,14 +51,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     applyFilters();
   }
 
-  // if (message.command === "rotation") {
-  //   const videoPlayer = document.querySelector('video');
-  //   if (videoPlayer) {
-  //     videoPlayer.style.transform = `rotate(${message.value}deg)`;
-  //   } else {
-  //     console.error("動画プレーヤーが見つかりませんでした");
-  //   }
-  // }
+  if (message.command === "camera") {
+    takePicture().then((url) => {
+      sendResponse({ url: url });
+    }).catch((err) => {
+      console.log('撮影に失敗しました',err)
+      sendResponse({ url: null });
+    });
+    return true;
+  }
+
 });
 
 var initBrightness = 1;
@@ -96,16 +98,44 @@ var opacity = initOpacity;
 function applyFilters() {
   const videoPlayer = document.querySelector('video');
   if (videoPlayer) {
-    videoPlayer.style.filter = 'brightness(' + brightness + ') ' +
-                                'contrast(' + contrast + ') ' +
-                                'saturate(' + saturate + ') ' +
-                                'grayscale(' + grayscale + ')' +
-                                'sepia(' + sepia + ')' + 
-                                'hue-rotate(' + hueRotate + 'deg)' +
-                                'invert(' + invert + ')' +
-                                'blur(' + blurred + 'px)' +
-                                'opacity(' + opacity + ')';
+    videoPlayer.style.filter = filtering()
   } else {
     console.error("動画プレーヤーが見つかりませんでした");
   }
+}
+
+function takePicture() {
+  const videoPlayer = document.querySelector('video');
+
+  if (videoPlayer) {
+    let canvas = document.createElement('canvas');
+    canvas.width = videoPlayer.videoWidth;
+    canvas.height = videoPlayer.videoHeight;
+
+    let ctx = canvas.getContext('2d');
+    ctx.filter = filtering()
+    ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        resolve(url);
+      }, 'image/png');
+    });
+  } else {
+    console.error('動画が見つかりません');
+    return Promise.reject('動画が見つかりません');
+  }
+}
+
+function filtering() {
+  return 'brightness(' + brightness + ') ' +
+          'contrast(' + contrast + ') ' +
+          'saturate(' + saturate + ') ' +
+          'grayscale(' + grayscale + ')' +
+          'sepia(' + sepia + ')' + 
+          'hue-rotate(' + hueRotate + 'deg)' +
+          'invert(' + invert + ')' +
+          'blur(' + blurred + 'px)' +
+          'opacity(' + opacity + ')';
 }

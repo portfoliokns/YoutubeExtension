@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Video Modifier",
+  "name": "YouTube動画拡張",
   "version": "1.0",
   "permissions": ["scripting", "activeTab"],
   "action": {

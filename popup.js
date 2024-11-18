@@ -1,8 +1,6 @@
 document.getElementById("reset").addEventListener("click", () => {
-  // アクティブなタブのYouTubeページにメッセージを送信
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
-      console.log(response?.apply);
       if (response?.apply) {
         document.getElementById("brightness").value = 1
         document.getElementById("contrast").value = 1
@@ -84,12 +82,18 @@ document.getElementById("opacity").addEventListener("input", () => {
   });
 });
 
-// document.getElementById("rotation").addEventListener("input", () => {
-//   const rotation = document.getElementById("rotation").value;
-//   console.log(rotation)
-//   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-//     chrome.tabs.sendMessage(tabs[0].id, { command: "rotation", value: rotation });
-//   });
-// });
-
-
+document.getElementById("camera").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "camera"}, (response) => {
+      if (response?.url) {
+        const a = document.createElement('a');
+        a.href = response.url;
+        a.download = tabs[0].title + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(response.url);
+      }
+    });
+  });
+});
