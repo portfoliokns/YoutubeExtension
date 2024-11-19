@@ -1,4 +1,19 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.command === "setting" ) {
+    sendResponse({
+      brightness: brightness,
+      contrast: contrast,
+      saturate: saturate,
+      grayscale: grayscale,
+      sepia: sepia,
+      hueRotate: hueRotate,
+      invert: invert,
+      blurred: blurred,
+      opacity: opacity
+    });
+    return true;
+  }
+
   if (message.command === "reset") {
     reset();
     applyFilters();
@@ -100,7 +115,7 @@ function applyFilters() {
   if (videoPlayer) {
     videoPlayer.style.filter = filtering()
   } else {
-    console.error("動画プレーヤーが見つかりませんでした");
+    console.log("動画プレーヤーが見つかりませんでした");
   }
 }
 
@@ -123,7 +138,7 @@ function takePicture() {
       }, 'image/png');
     });
   } else {
-    console.error('動画が見つかりません');
+    console.log('動画が見つかりません');
     return Promise.reject('動画が見つかりません');
   }
 }
@@ -139,3 +154,53 @@ function filtering() {
           'blur(' + blurred + 'px)' +
           'opacity(' + opacity + ')';
 }
+
+function isVideoPage() {
+  // YouTubeの動画ページかクリップページかを判定
+  return window.location.pathname.includes('/watch') || window.location.pathname.includes('/clip');
+}
+
+let observedVideoPlayer;
+let observerConnected = true; // 監視が接続されているかどうかのフラグ
+
+function observeVideoElement() {
+  //トップページで動画要素が出現してしまうため、特定のページのみで処理を走らせる
+  if (!isVideoPage()) {
+    console.log('動画ページではないため、処理をスキップ');
+    return;
+  }
+
+  observedVideoPlayer = document.querySelector('video');
+  if (observedVideoPlayer && observerConnected) {
+    // 動画が再生中である場合のみ処理を実行
+    if (!observedVideoPlayer.paused) {
+      observedVideoPlayer.addEventListener('loadeddata', function() {
+        reset();
+        applyFilters();
+        
+        console.log('動画のフィルターをリセットしました');
+      });
+
+      // 最初に動画要素が見つかったときのみ監視を停止
+      if (observerConnected) {
+        observer.disconnect();
+        observerConnected = false; // 監視停止フラグを立てる
+      }
+    }
+  } else {
+    console.log('動画が見つかりません');
+  }
+}
+
+// DOMの変更を監視
+const observer = new MutationObserver((mutations) => {
+  for (let mutation of mutations) {
+    if (mutation.type === 'childList') {
+      // 新しい動画要素が読み込まれた可能性があるためチェック
+      observeVideoElement();
+    }
+  }
+});
+
+// YouTubeの動画プレーヤーのコンテナを監視対象に設定
+observer.observe(document.body, { childList: true, subtree: true });

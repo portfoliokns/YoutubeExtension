@@ -1,3 +1,21 @@
+window.addEventListener('load', function() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "setting" }, (response) => {
+      if (response) {
+        document.getElementById("brightness").value = response.brightness;
+        document.getElementById("contrast").value = response.contrast;
+        document.getElementById("saturate").value = response.saturate;
+        document.getElementById("grayscale").value = response.grayscale;
+        document.getElementById("sepia").value = response.sepia;
+        document.getElementById("hueRotate").value = response.hueRotate;
+        document.getElementById("invert").value = response.invert;
+        document.getElementById("blurred").value = response.blurred;
+        document.getElementById("opacity").value = response.opacity;
+      }
+    });
+  });
+});
+
 document.getElementById("reset").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
@@ -97,3 +115,4 @@ document.getElementById("camera").addEventListener("click", () => {
     });
   });
 });
+
