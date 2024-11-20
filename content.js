@@ -11,14 +11,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       blurred: blurred,
       opacity: opacity,
       leftRightReverse: leftRightReverse,
-      upDownReverse: upDownReverse
+      upDownReverse: upDownReverse,
+      hideControls: hideControls
     });
     return true;
   }
 
   if (message.command === "reset") {
-    reset();
+    resetFilters();
     applyFilters();
+    resetPlayerReverse();
+    resetController();
     sendResponse({ apply: true });
     return true;
   }
@@ -78,6 +81,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     playerReverse()
   }
 
+  if (message.command === "hideControls") {
+    hideControls = message.value;
+    hideController()
+  }
+
   if (message.command === "camera") {
     takePicture().then((url) => {
       sendResponse({ url: url });
@@ -100,7 +108,7 @@ var initInvert = 0;
 var initBlurred = 0;
 var initOpacity = 1;
 
-function reset() {
+function resetFilters() {
   brightness = initBrightness;
   contrast = initContrast;
   saturate = initSaturate;
@@ -187,10 +195,11 @@ function observeVideoElement() {
     // 動画が再生中である場合のみ処理を実行
     if (!observedVideoPlayer.paused) {
       observedVideoPlayer.addEventListener('loadeddata', function() {
-        reset();
+        resetFilters();
         applyFilters();
-        
-        console.log('動画のフィルターをリセットしました');
+        resetController();
+
+        console.log('動画のフィルターやパラメータをリセットしました');
       });
 
       // 最初に動画要素が見つかったときのみ監視を停止
@@ -217,8 +226,8 @@ const observer = new MutationObserver((mutations) => {
 // YouTubeの動画プレーヤーのコンテナを監視対象に設定
 observer.observe(document.body, { childList: true, subtree: true });
 
-var leftRightReverse = false
-var upDownReverse = false
+let leftRightReverse = false;
+let upDownReverse = false;
 function playerReverse() {
   const videoPlayer = document.querySelector('video');
   if (!videoPlayer) {
@@ -226,15 +235,76 @@ function playerReverse() {
     return;
   }
 
-  var scale
+  let scale
   if (leftRightReverse & upDownReverse) {
-    scale = "scale(-1, -1)"
+    scale = "scale(-1, -1)";
   } else if (!leftRightReverse & upDownReverse) {
-    scale = "scale(1, -1)"
+    scale = "scale(1, -1)";
   } else if (leftRightReverse & !upDownReverse) {
-    scale = "scale(-1, 1)"
+    scale = "scale(-1, 1)";
   } else {
-    scale = "scale(1, 1)"
+    scale = "scale(1, 1)";
   }
   videoPlayer.style.transform = scale;
+}
+
+function resetPlayerReverse() {
+  const videoPlayer = document.querySelector('video');
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+
+  videoPlayer.style.transform = "scale(1, 1)";
+}
+
+let hideControls = false;
+function hideController() {
+  const controller = document.querySelector('.ytp-chrome-bottom');
+  const icon = document.querySelector('.branding-img');
+  const container = document.querySelector('.ytp-chrome-top');
+  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+
+  if (!controller) {
+    console.log("コントローラーが見つかりませんでした");
+    return;
+  }
+
+  if (hideControls) {
+    if (controller) {controller.style.display = 'none';};
+    if (icon) {icon.style.display = 'none';};
+    if (container) {container.style.display = 'none';};
+    endScreenElements.forEach(element => {
+      element.style.display = 'none';
+    });
+
+  } else {
+    if (controller) {controller.style.display = 'block';};
+    if (icon) {icon.style.display = 'block';};
+    if (container) {container.style.display = 'block';};
+    endScreenElements.forEach(element => {
+      element.style.display = 'block';
+    });
+  }
+}
+
+function resetController() {
+  const controller = document.querySelector('.ytp-chrome-bottom');
+  const icon = document.querySelector('.branding-img');
+  const container = document.querySelector('.ytp-chrome-top');
+  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+
+  if (!controller) {
+    console.log("コントローラーが見つかりませんでした");
+    return;
+  }
+  
+  if (controller) {controller.style.display = 'block';};
+  if (icon) {icon.style.display = 'block';};
+  if (container) {container.style.display = 'block';};
+  endScreenElements.forEach(element => {
+    element.style.display = 'block';
+  });
+
+  hideControls = false;
 }
