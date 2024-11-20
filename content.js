@@ -37,61 +37,73 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "brightness") {
     brightness = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "contrast") {
     contrast = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "saturate") {
     saturate = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "grayscale") {
     grayscale = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "sepia") {
     sepia = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "hueRotate") {
     hueRotate = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "invert") {
     invert = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "blurred") {
     blurred = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "opacity") {
     opacity = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "leftRight") {
     leftRightReverse = message.value;
     playerReverse()
+    return;
   }
 
   if (message.command === "upDown") {
     upDownReverse = message.value;
     playerReverse()
+    return;
   }
 
   if (message.command === "hideControls") {
     hideControls = message.value;
     hideController()
+    return;
   }
 
   if (message.command === "camera") {
@@ -156,8 +168,22 @@ function takePicture() {
     canvas.height = videoPlayer.videoHeight;
 
     let ctx = canvas.getContext('2d');
+
+    // スケール（反転）設定
+    ctx.save(); // 現在の状態を保存
+    if (leftRightReverse) {
+      ctx.scale(-1, 1); // 左右反転
+      ctx.translate(-canvas.width, 0); // 左右反転後の位置調整
+    }
+    if (upDownReverse) {
+      ctx.scale(1, -1); // 上下反転
+      ctx.translate(0, -canvas.height); // 上下反転後の位置調整
+    }
+
     ctx.filter = filtering()
+
     ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+    ctx.restore(); // 元の状態に戻す
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -257,6 +283,9 @@ function playerReverse() {
 }
 
 function resetPlayerReverse() {
+  leftRightReverse = false;
+  upDownReverse = false;
+
   const videoPlayer = document.querySelector('video');
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
