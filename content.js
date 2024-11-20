@@ -9,7 +9,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       hueRotate: hueRotate,
       invert: invert,
       blurred: blurred,
-      opacity: opacity
+      opacity: opacity,
+      leftRightReverse: leftRightReverse,
+      upDownReverse: upDownReverse
     });
     return true;
   }
@@ -64,6 +66,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "opacity") {
     opacity = message.value;
     applyFilters();
+  }
+
+  if (message.command === "leftRight") {
+    leftRightReverse = message.value;
+    playerReverse()
+  }
+
+  if (message.command === "upDown") {
+    upDownReverse = message.value;
+    playerReverse()
   }
 
   if (message.command === "camera") {
@@ -204,3 +216,25 @@ const observer = new MutationObserver((mutations) => {
 
 // YouTubeの動画プレーヤーのコンテナを監視対象に設定
 observer.observe(document.body, { childList: true, subtree: true });
+
+var leftRightReverse = false
+var upDownReverse = false
+function playerReverse() {
+  const videoPlayer = document.querySelector('video');
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+
+  var scale
+  if (leftRightReverse & upDownReverse) {
+    scale = "scale(-1, -1)"
+  } else if (!leftRightReverse & upDownReverse) {
+    scale = "scale(1, -1)"
+  } else if (leftRightReverse & !upDownReverse) {
+    scale = "scale(-1, 1)"
+  } else {
+    scale = "scale(1, 1)"
+  }
+  videoPlayer.style.transform = scale;
+}

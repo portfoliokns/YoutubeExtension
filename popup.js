@@ -11,6 +11,8 @@ window.addEventListener('load', function() {
         document.getElementById("invert").value = response.invert;
         document.getElementById("blurred").value = response.blurred;
         document.getElementById("opacity").value = response.opacity;
+        leftRightReverse = response.leftRightReverse;
+        upDownReverse = response.upDownReverse;
       }
     });
   });
@@ -97,6 +99,30 @@ document.getElementById("opacity").addEventListener("input", () => {
   const opacity = document.getElementById("opacity").value;
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "opacity", value: opacity });
+  });
+});
+
+let leftRightReverse = false
+document.getElementById("leftRight").addEventListener("click", () => {
+  if (leftRightReverse) {
+    leftRightReverse = false
+  } else {
+    leftRightReverse = true
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "leftRight", value: leftRightReverse });
+  });
+});
+
+let upDownReverse = false
+document.getElementById("upDown").addEventListener("click", () => {
+  if (upDownReverse) {
+    upDownReverse = false
+  } else {
+    upDownReverse = true
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "upDown", value: upDownReverse });
   });
 });
 
