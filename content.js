@@ -1,3 +1,11 @@
+window.addEventListener('load', function() {
+  //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
+  const shadowTop = document.querySelector('.ytp-gradient-top');
+  if (shadowTop) {
+    shadowTop.style.display = 'none';
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "setting" ) {
     sendResponse({
@@ -260,10 +268,12 @@ function resetPlayerReverse() {
 
 let hideControls = false;
 function hideController() {
+  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
   const controller = document.querySelector('.ytp-chrome-bottom');
   const icon = document.querySelector('.branding-img');
   const container = document.querySelector('.ytp-chrome-top');
   const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+  
 
   if (!controller) {
     console.log("コントローラーが見つかりませんでした");
@@ -271,6 +281,7 @@ function hideController() {
   }
 
   if (hideControls) {
+    if (shadowBottom) {shadowBottom.style.display = 'none' };
     if (controller) {controller.style.display = 'none';};
     if (icon) {icon.style.display = 'none';};
     if (container) {container.style.display = 'none';};
@@ -279,6 +290,7 @@ function hideController() {
     });
 
   } else {
+    if (shadowBottom) {shadowBottom.style.display = 'block' };
     if (controller) {controller.style.display = 'block';};
     if (icon) {icon.style.display = 'block';};
     if (container) {container.style.display = 'block';};
@@ -289,6 +301,7 @@ function hideController() {
 }
 
 function resetController() {
+  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
   const controller = document.querySelector('.ytp-chrome-bottom');
   const icon = document.querySelector('.branding-img');
   const container = document.querySelector('.ytp-chrome-top');
@@ -299,6 +312,7 @@ function resetController() {
     return;
   }
   
+  if (shadowBottom) {shadowBottom.style.display = 'block' };
   if (controller) {controller.style.display = 'block';};
   if (icon) {icon.style.display = 'block';};
   if (container) {container.style.display = 'block';};
