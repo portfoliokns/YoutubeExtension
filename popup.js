@@ -11,6 +11,15 @@ window.addEventListener('load', function() {
         document.getElementById("invert").value = response.invert;
         document.getElementById("blurred").value = response.blurred;
         document.getElementById("opacity").value = response.opacity;
+        leftRightReverse = response.leftRightReverse;
+        upDownReverse = response.upDownReverse;
+        hideControls = response.hideControls;
+
+        if (hideControls) {
+          document.getElementById("hideControls").textContent = "コントロール表示";
+        } else {
+          document.getElementById("hideControls").textContent = "コントロール非表示";
+        }
       }
     });
   });
@@ -29,7 +38,6 @@ document.getElementById("reset").addEventListener("click", () => {
         document.getElementById("invert").value = 0
         document.getElementById("blurred").value = 0
         document.getElementById("opacity").value = 1
-        // document.getElementById("rotation").value = 0
       } else {
         console.log('リセットに失敗')
       };
@@ -97,6 +105,45 @@ document.getElementById("opacity").addEventListener("input", () => {
   const opacity = document.getElementById("opacity").value;
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "opacity", value: opacity });
+  });
+});
+
+let leftRightReverse = false;
+document.getElementById("leftRight").addEventListener("click", () => {
+  if (leftRightReverse) {
+    leftRightReverse = false;
+  } else {
+    leftRightReverse = true;
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "leftRight", value: leftRightReverse });
+  });
+});
+
+let upDownReverse = false;
+document.getElementById("upDown").addEventListener("click", () => {
+  if (upDownReverse) {
+    upDownReverse = false;
+  } else {
+    upDownReverse = true;
+  }
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "upDown", value: upDownReverse });
+  });
+});
+
+let hideControls;
+document.getElementById("hideControls").addEventListener("click", () => {
+  if (hideControls) {
+    hideControls = false
+    document.getElementById("hideControls").textContent = "コントロール非表示";
+  } else {
+    hideControls = true
+    document.getElementById("hideControls").textContent = "コントロール表示";
+  }
+  
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "hideControls", value: hideControls });
   });
 });
 

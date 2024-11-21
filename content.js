@@ -1,3 +1,11 @@
+window.addEventListener('load', function() {
+  //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
+  const shadowTop = document.querySelector('.ytp-gradient-top');
+  if (shadowTop) {
+    shadowTop.style.display = 'none';
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "setting" ) {
     sendResponse({
@@ -9,14 +17,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       hueRotate: hueRotate,
       invert: invert,
       blurred: blurred,
-      opacity: opacity
+      opacity: opacity,
+      leftRightReverse: leftRightReverse,
+      upDownReverse: upDownReverse,
+      hideControls: hideControls
     });
     return true;
   }
 
   if (message.command === "reset") {
-    reset();
+    resetFilters();
     applyFilters();
+    resetPlayerReverse();
+    resetController();
     sendResponse({ apply: true });
     return true;
   }
@@ -24,46 +37,73 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "brightness") {
     brightness = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "contrast") {
     contrast = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "saturate") {
     saturate = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "grayscale") {
     grayscale = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "sepia") {
     sepia = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "hueRotate") {
     hueRotate = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "invert") {
     invert = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "blurred") {
     blurred = message.value;
     applyFilters();
+    return;
   }
 
   if (message.command === "opacity") {
     opacity = message.value;
     applyFilters();
+    return;
+  }
+
+  if (message.command === "leftRight") {
+    leftRightReverse = message.value;
+    playerReverse()
+    return;
+  }
+
+  if (message.command === "upDown") {
+    upDownReverse = message.value;
+    playerReverse()
+    return;
+  }
+
+  if (message.command === "hideControls") {
+    hideControls = message.value;
+    hideController()
+    return;
   }
 
   if (message.command === "camera") {
@@ -88,7 +128,7 @@ var initInvert = 0;
 var initBlurred = 0;
 var initOpacity = 1;
 
-function reset() {
+function resetFilters() {
   brightness = initBrightness;
   contrast = initContrast;
   saturate = initSaturate;
@@ -128,8 +168,22 @@ function takePicture() {
     canvas.height = videoPlayer.videoHeight;
 
     let ctx = canvas.getContext('2d');
+
+    // スケール（反転）設定
+    // ctx.save(); // 現在の状態を保存
+    if (leftRightReverse) {
+      ctx.scale(-1, 1); // 左右反転
+      ctx.translate(-canvas.width, 0); // 左右反転後の位置調整
+    }
+    if (upDownReverse) {
+      ctx.scale(1, -1); // 上下反転
+      ctx.translate(0, -canvas.height); // 上下反転後の位置調整
+    }
+
     ctx.filter = filtering()
+
     ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
+    // ctx.restore(); // 元の状態に戻す
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -175,10 +229,12 @@ function observeVideoElement() {
     // 動画が再生中である場合のみ処理を実行
     if (!observedVideoPlayer.paused) {
       observedVideoPlayer.addEventListener('loadeddata', function() {
-        reset();
+        resetFilters();
         applyFilters();
-        
-        console.log('動画のフィルターをリセットしました');
+        resetPlayerReverse();
+        resetController();
+
+        console.log('動画のフィルターやパラメータをリセットしました');
       });
 
       // 最初に動画要素が見つかったときのみ監視を停止
@@ -204,3 +260,95 @@ const observer = new MutationObserver((mutations) => {
 
 // YouTubeの動画プレーヤーのコンテナを監視対象に設定
 observer.observe(document.body, { childList: true, subtree: true });
+
+let leftRightReverse = false;
+let upDownReverse = false;
+function playerReverse() {
+  const videoPlayer = document.querySelector('video');
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+
+  let scale
+  if (leftRightReverse & upDownReverse) {
+    scale = "scale(-1, -1)";
+  } else if (!leftRightReverse & upDownReverse) {
+    scale = "scale(1, -1)";
+  } else if (leftRightReverse & !upDownReverse) {
+    scale = "scale(-1, 1)";
+  } else {
+    scale = "scale(1, 1)";
+  }
+  videoPlayer.style.transform = scale;
+}
+
+function resetPlayerReverse() {
+  leftRightReverse = false;
+  upDownReverse = false;
+
+  const videoPlayer = document.querySelector('video');
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+
+  videoPlayer.style.transform = "scale(1, 1)";
+}
+
+let hideControls = false;
+function hideController() {
+  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
+  const controller = document.querySelector('.ytp-chrome-bottom');
+  const icon = document.querySelector('.branding-img');
+  const container = document.querySelector('.ytp-chrome-top');
+  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+  
+
+  if (!controller) {
+    console.log("コントローラーが見つかりませんでした");
+    return;
+  }
+
+  if (hideControls) {
+    if (shadowBottom) {shadowBottom.style.display = 'none' };
+    if (controller) {controller.style.display = 'none';};
+    if (icon) {icon.style.display = 'none';};
+    if (container) {container.style.display = 'none';};
+    endScreenElements.forEach(element => {
+      element.style.display = 'none';
+    });
+
+  } else {
+    if (shadowBottom) {shadowBottom.style.display = 'block' };
+    if (controller) {controller.style.display = 'block';};
+    if (icon) {icon.style.display = 'block';};
+    if (container) {container.style.display = 'block';};
+    endScreenElements.forEach(element => {
+      element.style.display = 'block';
+    });
+  }
+}
+
+function resetController() {
+  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
+  const controller = document.querySelector('.ytp-chrome-bottom');
+  const icon = document.querySelector('.branding-img');
+  const container = document.querySelector('.ytp-chrome-top');
+  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+
+  if (!controller) {
+    console.log("コントローラーが見つかりませんでした");
+    return;
+  }
+  
+  if (shadowBottom) {shadowBottom.style.display = 'block' };
+  if (controller) {controller.style.display = 'block';};
+  if (icon) {icon.style.display = 'block';};
+  if (container) {container.style.display = 'block';};
+  endScreenElements.forEach(element => {
+    element.style.display = 'block';
+  });
+
+  hideControls = false;
+}
