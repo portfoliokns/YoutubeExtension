@@ -38,7 +38,6 @@ document.getElementById("reset").addEventListener("click", () => {
         document.getElementById("invert").value = 0
         document.getElementById("blurred").value = 0
         document.getElementById("opacity").value = 1
-        // document.getElementById("rotation").value = 0
       } else {
         console.log('リセットに失敗')
       };

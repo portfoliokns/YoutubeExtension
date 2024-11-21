@@ -170,7 +170,7 @@ function takePicture() {
     let ctx = canvas.getContext('2d');
 
     // スケール（反転）設定
-    ctx.save(); // 現在の状態を保存
+    // ctx.save(); // 現在の状態を保存
     if (leftRightReverse) {
       ctx.scale(-1, 1); // 左右反転
       ctx.translate(-canvas.width, 0); // 左右反転後の位置調整
@@ -183,7 +183,7 @@ function takePicture() {
     ctx.filter = filtering()
 
     ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-    ctx.restore(); // 元の状態に戻す
+    // ctx.restore(); // 元の状態に戻す
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -231,6 +231,7 @@ function observeVideoElement() {
       observedVideoPlayer.addEventListener('loadeddata', function() {
         resetFilters();
         applyFilters();
+        resetPlayerReverse();
         resetController();
 
         console.log('動画のフィルターやパラメータをリセットしました');
