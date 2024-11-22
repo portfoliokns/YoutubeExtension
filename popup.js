@@ -264,7 +264,7 @@ function time2seconds(hhTime, mmTime, ssTime, msTime) {
   seconds += hhTime * 3600; // 時間を秒に変換
   seconds += mmTime * 60;   // 分を秒に変換
   seconds += ssTime;        // 秒
-  seconds += msTime / 100;  // ミリ秒
+  seconds += msTime / 1000;  // ミリ秒
 
   return seconds
 }
@@ -280,7 +280,7 @@ function seconds2time(totalSeconds) {
 
   // 秒とミリ秒を計算
   let ssTime = Math.floor(totalSeconds);
-  let msTime = Math.round((totalSeconds - ssTime) * 100);
+  let msTime = Math.round((totalSeconds - ssTime) * 1000);
   
   return {
     hhTime: hhTime,
