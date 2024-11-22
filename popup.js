@@ -72,10 +72,10 @@ let isOpenClip = false;
 document.getElementById("clip").addEventListener("click", () =>{
   const filters = document.getElementById("clipTimes");
   if (isOpenClip) {
-    document.getElementById("clip").innerText = "クリップ表示"
+    document.getElementById("clip").innerText = "クリップ設定を表示"
     filters.style.display = "none";
   } else {
-    document.getElementById("clip").innerText = "クリップ非表示"
+    document.getElementById("clip").innerText = "クリップ設定を閉じる"
     filters.style.display = "block";
   }
   isOpenClip = !isOpenClip
@@ -108,10 +108,10 @@ let isOpenFilters = false
 document.getElementById("filter").addEventListener("click", () =>{
   const filters = document.getElementById("filterSliders");
   if (isOpenFilters) {
-    document.getElementById("filter").innerText = "フィルター表示"
+    document.getElementById("filter").innerText = "フィルター設定を表示"
     filters.style.display = "none";
   } else {
-    document.getElementById("filter").innerText = "フィルター非表示"
+    document.getElementById("filter").innerText = "フィルター設定を閉じる"
     filters.style.display = "block";
   }
   isOpenFilters = !isOpenFilters
