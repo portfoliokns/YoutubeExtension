@@ -1,7 +1,7 @@
 body {
   font-family: Arial, sans-serif;
-  width: 200px;
-  padding: 10px;
+  width: 220px;
+  padding: 5px;
 }
 
 button {
@@ -31,12 +31,6 @@ h1 {
   color: #555;
 }
 
-body {
-  font-family: Arial, sans-serif;
-  width: 150px;
-  padding: 5px;
-}
-
 h3 {
   text-align: center;
 }
@@ -56,4 +50,8 @@ input[type="range"] {
 
 input[type="checkbox"] {
   width: auto;
+}
+
+.hidden {
+  display: none;
 }

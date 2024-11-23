@@ -20,7 +20,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       opacity: opacity,
       leftRightReverse: leftRightReverse,
       upDownReverse: upDownReverse,
-      hideControls: hideControls
+      hideControls: hideControls,
+      clipStartTime: clipStartTime,
+      clipEndTime: clipEndTime
     });
     return true;
   }
@@ -30,6 +32,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     applyFilters();
     resetPlayerReverse();
     resetController();
+    settingClipVideo(message.command);
+    resetClipVideoTime();
     sendResponse({ apply: true });
     return true;
   }
@@ -116,6 +120,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
+  if (message.command === "clip") {
+    clipStartTime = message.startTime;
+    clipEndTime = message.endTime;
+    settingClipVideo(message.command)
+    return;
+  }
+
+  if (message.command === "clipEnd") {
+    clipStartTime = message.startTime;;
+    clipEndTime = message.endTime;
+    settingClipVideo(message.command)
+    return;
+  }
 });
 
 var initBrightness = 1;
@@ -233,6 +250,8 @@ function observeVideoElement() {
         applyFilters();
         resetPlayerReverse();
         resetController();
+        settingClipVideo("reset");
+        resetClipVideoTime();
 
         console.log('動画のフィルターやパラメータをリセットしました');
       });
@@ -351,4 +370,86 @@ function resetController() {
   });
 
   hideControls = false;
+}
+
+let initClipStartTime = 0;
+let initClipEndTime = 60;
+let clipStartTime = initClipStartTime;
+let clipEndTime = initClipEndTime;
+function settingClipVideo(request) {
+  const videoPlayer = document.querySelector('video');
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+
+  if (request === "clip") {
+    resetClipVideo(videoPlayer)
+    applyClipVideo(videoPlayer, clipStartTime, clipEndTime)
+  } else {
+    resetClipVideo(videoPlayer)
+  }
+}
+
+let playListener, timeupdateListener, seekedListener;
+function applyClipVideo(videoPlayer, startTime, endTime) {
+
+  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
+    videoPlayer.currentTime = startTime;
+  }
+
+  if (playListener) {
+    playListener = null;
+  }
+
+  if (timeupdateListener) {
+    timeupdateListener = null;
+  }
+
+  if (seekedListener) {
+    seekedListener = null;
+  }
+
+  if (!playListener) {
+    playListener = () => play(videoPlayer, startTime, endTime);
+  }
+  if (!timeupdateListener) {
+    timeupdateListener = () => timeupdate(videoPlayer, startTime, endTime);
+  }
+  if (!seekedListener) {
+    seekedListener = () => seeked(videoPlayer, startTime, endTime);
+  }
+
+  videoPlayer.addEventListener("play", playListener);
+  videoPlayer.addEventListener("timeupdate", timeupdateListener);
+  videoPlayer.addEventListener("seeked", seekedListener);
+}
+
+function resetClipVideo(videoPlayer) {
+  if (playListener) videoPlayer.removeEventListener("play", playListener);
+  if (timeupdateListener) videoPlayer.removeEventListener("timeupdate", timeupdateListener);
+  if (seekedListener) videoPlayer.removeEventListener("seeked", seekedListener);
+}
+
+function play(videoPlayer, startTime, endTime) {
+  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
+    videoPlayer.currentTime = startTime;
+  }
+}
+
+function timeupdate(videoPlayer, startTime, endTime) {
+  if (videoPlayer.currentTime >= endTime) {
+    videoPlayer.currentTime = startTime;
+  }
+}
+
+function seeked(videoPlayer, startTime, endTime) {
+  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime > endTime) {
+    videoPlayer.currentTime = startTime;
+  }
+}
+
+function resetClipVideoTime() {
+  clipStartTime = initClipStartTime;
+  clipEndTime = initClipEndTime;
 }
