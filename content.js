@@ -386,6 +386,7 @@ function settingClipVideo(request) {
   if (request === "clip") {
     resetClipVideo(videoPlayer)
     applyClipVideo(videoPlayer, clipStartTime, clipEndTime)
+    seekToTimeClipVideo(videoPlayer, clipStartTime)
   } else {
     resetClipVideo(videoPlayer)
   }
@@ -423,6 +424,10 @@ function applyClipVideo(videoPlayer, startTime, endTime) {
   videoPlayer.addEventListener("play", playListener);
   videoPlayer.addEventListener("timeupdate", timeupdateListener);
   videoPlayer.addEventListener("seeked", seekedListener);
+}
+
+function seekToTimeClipVideo(videoPlayer, startTime) {
+  videoPlayer.currentTime = startTime;
 }
 
 function resetClipVideo(videoPlayer) {
