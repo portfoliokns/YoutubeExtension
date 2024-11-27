@@ -81,6 +81,55 @@ document.getElementById("clip").addEventListener("click", () =>{
   isOpenClip = !isOpenClip
 });
 
+document.getElementById("clipSave").addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "clipSave"}, (response) => {
+      if (response?.url) {
+        
+        let title = document.getElementById("clipName").value;
+        if (!title) { title = tabs[0].title; }
+
+        let youtubeUrl = tabs[0].url;
+
+        let hhStart = parseInt(document.getElementById("startTimeHh").value, 10);
+        let mmStart = parseInt(document.getElementById("startTimeMm").value, 10);
+        let ssStart = parseInt(document.getElementById("startTimeSs").value, 10);
+        let msStart = parseInt(document.getElementById("startTimeMs").value, 10);
+
+        let hhEnd = parseInt(document.getElementById("endTimeHh").value, 10);
+        let mmEnd = parseInt(document.getElementById("endTimeMm").value, 10);
+        let ssEnd = parseInt(document.getElementById("endTimeSs").value, 10);
+        let msEnd = parseInt(document.getElementById("endTimeMs").value, 10);
+
+        let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
+        let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
+
+        fetch(response.url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            // フォームデータを作成
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("url", youtubeUrl);
+            formData.append("start_time", startTime);
+            formData.append("end_time", endTime);
+            formData.append("image", blob, "image.png");
+            console.log(formData, title, youtubeUrl, startTime, endTime, blob)
+
+            fetch("http://localhost:6789/images", {
+              method: "POST",
+              body: formData,
+              }
+            )
+            .then((response) => response.json())
+            .then((data) => alert("成功: " + JSON.stringify(data)))
+            .catch((error) => alert("エラー：",  + JSON.stringify(error)))
+        })
+      }
+    });
+  });
+});
+
 document.getElementById("clipApply").addEventListener("click", () => {
   sendClipQuery()
 });

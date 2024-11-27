@@ -110,7 +110,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if (message.command === "camera") {
+  if (message.command === "camera" || message.command === "clipSave") {
     takePicture().then((url) => {
       sendResponse({ url: url });
     }).catch((err) => {
