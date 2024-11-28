@@ -6,73 +6,91 @@
     <link rel="stylesheet" href="popup.css"> 
   </head>
   <body>
-    <button id="reset">リセット</button>
-
-    <button id="clip">クリップ設定を表示</button>
+    <form action="#">
+      <input type="submit" id="reset" class="" value="リセット">
+    </form>
+    <form action="#">
+      <input type="submit" id="clip" class="" value="クリップ設定を表示">
+    </form>
     <div id="clipTimes" class="hidden">
-      <input type="text" id="clipName" placeholder="クリップ名を記入">
-      <button id="clipSave">保存（localserver連携）</button>
-      <label for="startTime">開始時刻 hh:mm:ss:ms</label>
-      <div>
-        <input type="number" id="startTimeHh" placeholder="hh" value="0" min="0" max="20" step="1"> :
-        <input type="number" id="startTimeMm" placeholder="mm" value="0" min="0" max="59" step="1"> :
-        <input type="number" id="startTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
-        <input type="number" id="startTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
-      </div>
-      <label for="endTime">終了時刻 hh:mm:ss:ms</label>
-      <div>
-        <input type="number" id="endTimeHh" placeholder="hh" value="0" min="0" max="20" step="1"> :
-        <input type="number" id="endTimeMm" placeholder="mm" value="1" min="0" max="59" step="1"> :
-        <input type="number" id="endTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
-        <input type="number" id="endTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
-      </div>
-      <button id="clipApply">クリップ適応</button>
-      <button id="clipReset">クリップ解除</button>
+      <form action="#">
+        <input type="text" id="clipName" placeholder="クリップ名を記入">
+        <input type="submit" id="clipSave" class="" value="保存（localserver連携）">
+      </form>
+      <form action="#">
+        <label for="startTime">開始時刻 hh:mm:ss:ms</label>
+        <div>
+          <input type="number" id="startTimeHh" placeholder="hh" value="0" min="0" max="20" step="1"> :
+          <input type="number" id="startTimeMm" placeholder="mm" value="0" min="0" max="59" step="1"> :
+          <input type="number" id="startTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
+          <input type="number" id="startTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
+        </div>
+        <label for="endTime">終了時刻 hh:mm:ss:ms</label>
+        <div>
+          <input type="number" id="endTimeHh" placeholder="hh" value="0" min="0" max="20" step="1"> :
+          <input type="number" id="endTimeMm" placeholder="mm" value="1" min="0" max="59" step="1"> :
+          <input type="number" id="endTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
+          <input type="number" id="endTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
+        </div>
+        <input type="submit" id="clipApply" class="" value="クリップ適応">
+      </form>
+      <form action="#">
+        <input type="submit" id="clipReset" class="" value="クリップ解除">
+      </form>
     </div>
-    
-    <button id="filter">フィルター設定を表示</button>
-    <div id="filterSliders" class="hidden">
-      <div>
-        <label for="brightness">明るさ:</label>
-        <input type="range" id="brightness" min="0" max="2" step="0.01" value="1">
+    <form action="#">
+      <input type="submit" id="filter" class="" value="フィルター設定を表示">
+      <div id="filterSliders" class="hidden">
+        <div>
+          <label for="brightness">明るさ:</label>
+          <input type="range" id="brightness" min="0" max="2" step="0.01" value="1">
+        </div>
+        <div>
+          <label for="contrast">コントラスト:</label>
+          <input type="range" id="contrast" min="0" max="2" step="0.01" value="1">
+        </div>
+        <div>
+          <label for="saturate">彩度:</label>
+          <input type="range" id="saturate" min="0" max="2" step="0.01" value="1" >
+        </div>
+        <div>
+          <label for="grayscale">グレースケール:</label>
+          <input type="range" id="grayscale" min="0" max="1" step="0.01" value="0">
+        </div>
+        <div>
+          <label for="sepia">セピア:</label>
+          <input type="range" id="sepia" min="0" max="1" step="0.01" value="0">
+        </div>
+        <div>
+          <label for="hueRotate">色相:</label>
+          <input type="range" id="hueRotate" min="0" max="360" step="0.01" value="0">
+        </div>
+        <div>
+          <label for="invert">階調:</label>
+          <input type="range" id="invert" min="0" max="1" step="0.01" value="0">
+        </div>
+        <div>
+          <label for="blurred">ぼかし:</label>
+          <input type="range" id="blurred" min="0" max="10" step="0.01" value="0">
+        </div>
+        <div>
+          <label for="opacity">透明度:</label>
+          <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
+        </div>
       </div>
-      <div>
-        <label for="contrast">コントラスト:</label>
-        <input type="range" id="contrast" min="0" max="2" step="0.01" value="1">
-      </div>
-      <div>
-        <label for="saturate">彩度:</label>
-        <input type="range" id="saturate" min="0" max="2" step="0.01" value="1" >
-      </div>
-      <div>
-        <label for="grayscale">グレースケール:</label>
-        <input type="range" id="grayscale" min="0" max="1" step="0.01" value="0">
-      </div>
-      <div>
-        <label for="sepia">セピア:</label>
-        <input type="range" id="sepia" min="0" max="1" step="0.01" value="0">
-      </div>
-      <div>
-        <label for="hueRotate">色相:</label>
-        <input type="range" id="hueRotate" min="0" max="360" step="0.01" value="0">
-      </div>
-      <div>
-        <label for="invert">階調:</label>
-        <input type="range" id="invert" min="0" max="1" step="0.01" value="0">
-      </div>
-      <div>
-        <label for="blurred">ぼかし:</label>
-        <input type="range" id="blurred" min="0" max="10" step="0.01" value="0">
-      </div>
-      <div>
-        <label for="opacity">透明度:</label>
-        <input type="range" id="opacity" min="0" max="1" step="0.01" value="1">
-      </div>
-    </div>
-    <button id="leftRight">左右反転</button>
-    <button id="upDown">上下反転</button>
-    <button id="hideControls">コントロール非表示</button>
-    <button id="camera">キャプチャ</button>
+    </form>
+    <form action="#">
+      <input type="submit" id="leftRight" class="" value="左右反転">
+    </form>
+    <form action="#">
+      <input type="submit" id="upDown" class="" value="上下反転">
+    </form>
+    <form action="#">
+      <input type="submit" id="hideControls" class="" value="コントロール非表示">
+    </form>
+    <form action="#">
+      <input type="submit" id="camera" class="" value="キャプチャ">
+    </form>
     <script src="popup.js"></script>
   </body>
 </html>

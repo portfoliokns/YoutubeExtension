@@ -40,7 +40,9 @@ window.addEventListener('load', function() {
   });
 });
 
-document.getElementById("reset").addEventListener("click", () => {
+document.getElementById("reset").addEventListener("click", (event) => {
+  event.preventDefault();
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
       if (response?.apply) {
@@ -69,19 +71,23 @@ document.getElementById("reset").addEventListener("click", () => {
 });
 
 let isOpenClip = false;
-document.getElementById("clip").addEventListener("click", () =>{
+document.getElementById("clip").addEventListener("click", (event) =>{
+  event.preventDefault();
+
   const filters = document.getElementById("clipTimes");
   if (isOpenClip) {
-    document.getElementById("clip").innerText = "クリップ設定を表示"
+    document.getElementById("clip").value = "クリップ設定を表示"
     filters.style.display = "none";
   } else {
-    document.getElementById("clip").innerText = "クリップ設定を閉じる"
+    document.getElementById("clip").value = "クリップ設定を閉じる"
     filters.style.display = "block";
   }
   isOpenClip = !isOpenClip
 });
 
-document.getElementById("clipSave").addEventListener("click", () => {
+document.getElementById("clipSave").addEventListener("click", (event) => {
+  event.preventDefault();
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "clipSave"}, (response) => {
       if (response?.url) {
@@ -114,7 +120,6 @@ document.getElementById("clipSave").addEventListener("click", () => {
             formData.append("start_time", startTime);
             formData.append("end_time", endTime);
             formData.append("image", blob, "image.png");
-            console.log(formData, title, youtubeUrl, startTime, endTime, blob)
 
             fetch("http://localhost:6789/images", {
               method: "POST",
@@ -130,11 +135,17 @@ document.getElementById("clipSave").addEventListener("click", () => {
   });
 });
 
-document.getElementById("clipApply").addEventListener("click", () => {
+document.getElementById("clipApply").addEventListener("click", (event) => {
+  event.preventDefault();
+
   sendClipQuery()
+  document.getElementById("clipSave").disabled = false;
+  document.getElementById("clipSave").classList.remove("disabled");
 });
 
-document.getElementById("clipReset").addEventListener("click", () => {
+document.getElementById("clipReset").addEventListener("click", (event) => {
+  event.preventDefault();
+
   let hhStart = parseInt(document.getElementById("startTimeHh").value, 10);
   let mmStart = parseInt(document.getElementById("startTimeMm").value, 10);
   let ssStart = parseInt(document.getElementById("startTimeSs").value, 10);
@@ -151,16 +162,21 @@ document.getElementById("clipReset").addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "clipEnd", startTime: startTime, endTime: endTime});
   });
+  console.log(true)
+  document.getElementById("clipSave").disabled = true;
+  document.getElementById("clipSave").classList.add("disabled");
 });
 
 let isOpenFilters = false
-document.getElementById("filter").addEventListener("click", () =>{
+document.getElementById("filter").addEventListener("click", (event) =>{
+  event.preventDefault();
+
   const filters = document.getElementById("filterSliders");
   if (isOpenFilters) {
-    document.getElementById("filter").innerText = "フィルター設定を表示"
+    document.getElementById("filter").value = "フィルター設定を表示"
     filters.style.display = "none";
   } else {
-    document.getElementById("filter").innerText = "フィルター設定を閉じる"
+    document.getElementById("filter").value = "フィルター設定を閉じる"
     filters.style.display = "block";
   }
   isOpenFilters = !isOpenFilters
@@ -254,7 +270,9 @@ document.getElementById("opacity").addEventListener("input", () => {
 });
 
 let leftRightReverse = false;
-document.getElementById("leftRight").addEventListener("click", () => {
+document.getElementById("leftRight").addEventListener("click", (event) => {
+  event.preventDefault();
+
   if (leftRightReverse) {
     leftRightReverse = false;
   } else {
@@ -266,7 +284,9 @@ document.getElementById("leftRight").addEventListener("click", () => {
 });
 
 let upDownReverse = false;
-document.getElementById("upDown").addEventListener("click", () => {
+document.getElementById("upDown").addEventListener("click", (event) => {
+  event.preventDefault();
+
   if (upDownReverse) {
     upDownReverse = false;
   } else {
@@ -278,7 +298,9 @@ document.getElementById("upDown").addEventListener("click", () => {
 });
 
 let hideControls;
-document.getElementById("hideControls").addEventListener("click", () => {
+document.getElementById("hideControls").addEventListener("click", (event) => {
+  event.preventDefault();
+
   if (hideControls) {
     hideControls = false
     document.getElementById("hideControls").textContent = "コントロール非表示";
@@ -292,7 +314,9 @@ document.getElementById("hideControls").addEventListener("click", () => {
   });
 });
 
-document.getElementById("camera").addEventListener("click", () => {
+document.getElementById("camera").addEventListener("click", (event) => {
+  event.preventDefault();
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "camera"}, (response) => {
       if (response?.url) {
