@@ -1,4 +1,31 @@
 window.addEventListener('load', function() {
+  const url = new URL(window.location.href);
+  if (isEmbedURL(url.href)) {
+    isClipMode = !isClipMode;
+
+    const urlObject = new URL(url.href);
+    const urlParams = new URLSearchParams(urlObject.search);
+    const videoID = urlObject.pathname.split('/').pop();
+    let clipModeStart = parseFloat(urlParams.get('start'));
+    let clipModeEnd = parseFloat(urlParams.get('end'));
+
+    localStorage.setItem('isClipMode', JSON.stringify(isClipMode));
+    localStorage.setItem('clipModeStart', JSON.stringify(clipModeStart));
+    localStorage.setItem('clipModeEnd', JSON.stringify(clipModeEnd));
+
+    redirectURL = "https://www.youtube.com/watch?v=" + videoID;
+    window.location.href = redirectURL;
+    return
+  }
+
+  isClipMode = JSON.parse(localStorage.getItem('isClipMode'));
+  if (isClipMode) {
+    clipStartTime = JSON.parse(localStorage.getItem('clipModeStart'));
+    clipEndTime = JSON.parse(localStorage.getItem('clipModeEnd'));
+    settingClipVideo("clip")
+    localStorage.setItem('isClipMode', JSON.stringify(!isClipMode));
+  }
+
   //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
   const shadowTop = document.querySelector('.ytp-gradient-top');
   if (shadowTop) {
@@ -22,7 +49,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       upDownReverse: upDownReverse,
       hideControls: hideControls,
       clipStartTime: clipStartTime,
-      clipEndTime: clipEndTime
+      clipEndTime: clipEndTime,
+      isClipMode: isClipMode
     });
     return true;
   }
@@ -120,19 +148,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.command === "clip") {
+  if (message.command === "clip" || message.command === "clipEnd") {
     clipStartTime = message.startTime;
     clipEndTime = message.endTime;
     settingClipVideo(message.command)
     return;
   }
 
-  if (message.command === "clipEnd") {
-    clipStartTime = message.startTime;;
-    clipEndTime = message.endTime;
-    settingClipVideo(message.command)
-    return;
-  }
 });
 
 var initBrightness = 1;
@@ -372,6 +394,7 @@ function resetController() {
   hideControls = false;
 }
 
+let isClipMode = false;
 let initClipStartTime = 0;
 let initClipEndTime = 60;
 let clipStartTime = initClipStartTime;
@@ -457,4 +480,10 @@ function seeked(videoPlayer, startTime, endTime) {
 function resetClipVideoTime() {
   clipStartTime = initClipStartTime;
   clipEndTime = initClipEndTime;
+}
+
+function isEmbedURL (url) {
+  const regex = /^(https?:\/\/(?:www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]+)(\?start=[\d\.]+&end=[\d\.]+)?$/;
+  const result = regex.test(url);
+  return result;
 }

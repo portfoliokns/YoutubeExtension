@@ -21,6 +21,15 @@ window.addEventListener('load', function() {
           document.getElementById("hideControls").textContent = "コントロール非表示";
         }
 
+        let isClipMode = response.isClipMode
+        if (!isClipMode) {
+          document.getElementById("clipReset").disabled = true;
+          document.getElementById("clipReset").classList.add("disabled");
+          document.getElementById("clipSave").disabled = true;
+          document.getElementById("clipSave").classList.add("disabled");
+          console.log("処理されました")
+        }
+
         let clipStartTime = response.clipStartTime;
         let startTime = seconds2time(clipStartTime)
         document.getElementById("startTimeHh").value = startTime.hhTime;
@@ -96,6 +105,11 @@ document.getElementById("clipSave").addEventListener("click", (event) => {
         if (!title) { title = tabs[0].title; }
 
         let youtubeUrl = tabs[0].url;
+        let videoID = url2videoID(youtubeUrl);
+        if (!videoID) {
+          alert('該当するvideoIDがありませんでした。URLにvideoIDが含まれるかを確認してください。')
+          return;
+        }
 
         let hhStart = parseInt(document.getElementById("startTimeHh").value, 10);
         let mmStart = parseInt(document.getElementById("startTimeMm").value, 10);
@@ -107,8 +121,8 @@ document.getElementById("clipSave").addEventListener("click", (event) => {
         let ssEnd = parseInt(document.getElementById("endTimeSs").value, 10);
         let msEnd = parseInt(document.getElementById("endTimeMs").value, 10);
 
-        let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
-        let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
+        let startTime = time2seconds(hhStart,mmStart,ssStart,msStart);
+        let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd);
 
         fetch(response.url)
           .then((res) => res.blob())
@@ -116,7 +130,7 @@ document.getElementById("clipSave").addEventListener("click", (event) => {
             // フォームデータを作成
             const formData = new FormData();
             formData.append("title", title);
-            formData.append("url", youtubeUrl);
+            formData.append("videoID", videoID);
             formData.append("start_time", startTime);
             formData.append("end_time", endTime);
             formData.append("image", blob, "image.png");
@@ -141,6 +155,8 @@ document.getElementById("clipApply").addEventListener("click", (event) => {
   sendClipQuery()
   document.getElementById("clipSave").disabled = false;
   document.getElementById("clipSave").classList.remove("disabled");
+  document.getElementById("clipReset").disabled = false;
+  document.getElementById("clipReset").classList.remove("disabled");
 });
 
 document.getElementById("clipReset").addEventListener("click", (event) => {
@@ -162,9 +178,12 @@ document.getElementById("clipReset").addEventListener("click", (event) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "clipEnd", startTime: startTime, endTime: endTime});
   });
-  console.log(true)
   document.getElementById("clipSave").disabled = true;
   document.getElementById("clipSave").classList.add("disabled");
+  document.getElementById("clipApply").disabled = false;
+  document.getElementById("clipApply").classList.add("disabled");
+  document.getElementById("clipReset").disabled = true;
+  document.getElementById("clipReset").classList.add("disabled");
 });
 
 let isOpenFilters = false
@@ -361,4 +380,15 @@ function seconds2time(totalSeconds) {
     ssTime: ssTime,
     msTime: msTime
   };
+}
+
+function url2videoID(url){
+  let videoID;
+  if (URL.canParse(url)) {
+    const url_instance = new URL(url)
+    videoID = url_instance.searchParams.get("v");
+    if (url.includes('?si=')) videoID = url.split("?si=")[0].split("/")[3];
+  }
+  console.log('videoID' + videoID)
+  return videoID;
 }
