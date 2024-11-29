@@ -22,16 +22,16 @@ window.addEventListener('load', function() {
         }
 
         let isClipMode = response.isClipMode
-        if (!isClipMode) {
-          document.getElementById("clipReset").disabled = true;
-          document.getElementById("clipReset").classList.add("disabled");
-          document.getElementById("clipSave").disabled = true;
-          document.getElementById("clipSave").classList.add("disabled");
-          console.log("処理されました")
+        if (isClipMode) {
+          document.getElementById("clipSave").disabled = false;
+          document.getElementById("clipSave").classList.remove("disabled");
+          document.getElementById("clipReset").disabled = false;
+          document.getElementById("clipReset").classList.remove("disabled");
+          localStorage.setItem('isClipMode', JSON.stringify(!isClipMode));
         }
 
         let clipStartTime = response.clipStartTime;
-        let startTime = seconds2time(clipStartTime)
+        let startTime = seconds2time(clipStartTime);
         document.getElementById("startTimeHh").value = startTime.hhTime;
         document.getElementById("startTimeMm").value = startTime.mmTime;
         document.getElementById("startTimeSs").value = startTime.ssTime;
