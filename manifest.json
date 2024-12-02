@@ -7,7 +7,7 @@
   },
   "name": "YouTube動画拡張",
   "version": "1.0",
-  "permissions": ["scripting", "activeTab"],
+  "permissions": ["scripting", "activeTab", "storage"],
   "action": {
     "default_popup": "popup.html"
   },
@@ -15,6 +15,10 @@
     {
       "matches": ["*://*.youtube.com/*"],
       "js": ["content.js"]
+    },
+    {
+      "matches": ["http://localhost:6789/*"],
+      "js": ["content_LocalTube.js"]
     }
   ]
 }
