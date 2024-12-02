@@ -13,6 +13,6 @@ window.addEventListener('load', function() {
 
     setTimeout(function() {
       window.location.href = "https://www.youtube.com/watch?v=" + videoID;
-    },1000);
+    },100);
   }
 });
