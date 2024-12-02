@@ -1,4 +1,31 @@
+const videoPlayer = document.querySelector('video');
+
 window.addEventListener('load', function() {
+
+  //埋め込みURLにアクセスした場合、擬似クリップにリダイレクト
+  const url = new URL(window.location.href);
+  if (isEmbedURL(url.href)) {
+    isClipMode = "true";
+    const urlObject = new URL(url.href);
+    const urlParams = new URLSearchParams(urlObject.search);
+    const videoID = urlObject.pathname.split('/').pop();
+    let clipModeStart = parseFloat(urlParams.get('start'));
+    let clipModeEnd = parseFloat(urlParams.get('end'));
+    localStorage.setItem('isClipMode', JSON.stringify(isClipMode));
+    localStorage.setItem('clipModeStart', JSON.stringify(clipModeStart));
+    localStorage.setItem('clipModeEnd', JSON.stringify(clipModeEnd));
+    window.location.href = "https://www.youtube.com/watch?v=" + videoID;
+    return
+  }
+
+  isClipMode = JSON.parse(localStorage.getItem('isClipMode'));
+  if (isClipMode) {
+    clipStartTime = JSON.parse(localStorage.getItem('clipModeStart'));
+    clipEndTime = JSON.parse(localStorage.getItem('clipModeEnd'));
+    setClipVideo("clip")
+    localStorage.setItem('isClipMode', JSON.stringify(!isClipMode));
+  }
+
   //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
   const shadowTop = document.querySelector('.ytp-gradient-top');
   if (shadowTop) {
@@ -6,8 +33,16 @@ window.addEventListener('load', function() {
   }
 });
 
+window.addEventListener('beforeunload', (event) => {
+  const url = new URL(window.location.href);
+  if (!isEmbedURL(url.href)) {
+    isClipMode = false;
+    localStorage.setItem('isClipMode', JSON.stringify(false));
+  }
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.command === "setting" ) {
+  if (message.command === "getPlayerParameters" ) {
     sendResponse({
       brightness: brightness,
       contrast: contrast,
@@ -22,7 +57,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       upDownReverse: upDownReverse,
       hideControls: hideControls,
       clipStartTime: clipStartTime,
-      clipEndTime: clipEndTime
+      clipEndTime: clipEndTime,
+      isClipMode: isClipMode
     });
     return true;
   }
@@ -32,7 +68,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     applyFilters();
     resetPlayerReverse();
     resetController();
-    settingClipVideo(message.command);
+    setClipVideo(message.command);
     resetClipVideoTime();
     sendResponse({ apply: true });
     return true;
@@ -93,24 +129,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.command === "leftRight") {
-    leftRightReverse = message.value;
-    playerReverse()
+    leftRightReverse = !leftRightReverse
+    playerReverse();
     return;
   }
 
   if (message.command === "upDown") {
-    upDownReverse = message.value;
-    playerReverse()
+    upDownReverse = !upDownReverse
+    playerReverse();
     return;
   }
 
   if (message.command === "hideControls") {
-    hideControls = message.value;
-    hideController()
+    hideControls = !hideControls;
+    hideController();
     return;
   }
 
-  if (message.command === "camera") {
+  if (message.command === "camera" || message.command === "clipSave") {
     takePicture().then((url) => {
       sendResponse({ url: url });
     }).catch((err) => {
@@ -123,16 +159,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.command === "clip") {
     clipStartTime = message.startTime;
     clipEndTime = message.endTime;
-    settingClipVideo(message.command)
+    setClipVideo(message.command)
     return;
   }
 
   if (message.command === "clipEnd") {
-    clipStartTime = message.startTime;;
-    clipEndTime = message.endTime;
-    settingClipVideo(message.command)
+    setClipVideo(message.command)
     return;
   }
+
 });
 
 var initBrightness = 1;
@@ -168,7 +203,6 @@ var blurred = initBlurred;
 var opacity = initOpacity;
 
 function applyFilters() {
-  const videoPlayer = document.querySelector('video');
   if (videoPlayer) {
     videoPlayer.style.filter = filtering()
   } else {
@@ -177,30 +211,22 @@ function applyFilters() {
 }
 
 function takePicture() {
-  const videoPlayer = document.querySelector('video');
-
   if (videoPlayer) {
     let canvas = document.createElement('canvas');
     canvas.width = videoPlayer.videoWidth;
     canvas.height = videoPlayer.videoHeight;
 
     let ctx = canvas.getContext('2d');
-
-    // スケール（反転）設定
-    // ctx.save(); // 現在の状態を保存
     if (leftRightReverse) {
       ctx.scale(-1, 1); // 左右反転
-      ctx.translate(-canvas.width, 0); // 左右反転後の位置調整
+      ctx.translate(-canvas.width, 0);
     }
     if (upDownReverse) {
       ctx.scale(1, -1); // 上下反転
-      ctx.translate(0, -canvas.height); // 上下反転後の位置調整
+      ctx.translate(0, -canvas.height);
     }
-
     ctx.filter = filtering()
-
     ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
-    // ctx.restore(); // 元の状態に戻す
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
@@ -250,9 +276,8 @@ function observeVideoElement() {
         applyFilters();
         resetPlayerReverse();
         resetController();
-        settingClipVideo("reset");
-        resetClipVideoTime();
-
+        setClipVideo("reset");
+        seekToStartTime();
         console.log('動画のフィルターやパラメータをリセットしました');
       });
 
@@ -283,7 +308,6 @@ observer.observe(document.body, { childList: true, subtree: true });
 let leftRightReverse = false;
 let upDownReverse = false;
 function playerReverse() {
-  const videoPlayer = document.querySelector('video');
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
     return;
@@ -303,32 +327,23 @@ function playerReverse() {
 }
 
 function resetPlayerReverse() {
-  leftRightReverse = false;
-  upDownReverse = false;
-
-  const videoPlayer = document.querySelector('video');
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
     return;
   }
-
+  
+  leftRightReverse = false;
+  upDownReverse = false;
   videoPlayer.style.transform = "scale(1, 1)";
 }
 
 let hideControls = false;
+const shadowBottom = document.querySelector('.ytp-gradient-bottom');
+const controller = document.querySelector('.ytp-chrome-bottom');
+const icon = document.querySelector('.branding-img');
+const container = document.querySelector('.ytp-chrome-top');
+const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
 function hideController() {
-  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
-  const controller = document.querySelector('.ytp-chrome-bottom');
-  const icon = document.querySelector('.branding-img');
-  const container = document.querySelector('.ytp-chrome-top');
-  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
-  
-
-  if (!controller) {
-    console.log("コントローラーが見つかりませんでした");
-    return;
-  }
-
   if (hideControls) {
     if (shadowBottom) {shadowBottom.style.display = 'none' };
     if (controller) {controller.style.display = 'none';};
@@ -337,7 +352,6 @@ function hideController() {
     endScreenElements.forEach(element => {
       element.style.display = 'none';
     });
-
   } else {
     if (shadowBottom) {shadowBottom.style.display = 'block' };
     if (controller) {controller.style.display = 'block';};
@@ -350,17 +364,6 @@ function hideController() {
 }
 
 function resetController() {
-  const shadowBottom = document.querySelector('.ytp-gradient-bottom');
-  const controller = document.querySelector('.ytp-chrome-bottom');
-  const icon = document.querySelector('.branding-img');
-  const container = document.querySelector('.ytp-chrome-top');
-  const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
-
-  if (!controller) {
-    console.log("コントローラーが見つかりませんでした");
-    return;
-  }
-  
   if (shadowBottom) {shadowBottom.style.display = 'block' };
   if (controller) {controller.style.display = 'block';};
   if (icon) {icon.style.display = 'block';};
@@ -368,31 +371,35 @@ function resetController() {
   endScreenElements.forEach(element => {
     element.style.display = 'block';
   });
-
   hideControls = false;
 }
 
+let isClipMode = false;
 let initClipStartTime = 0;
 let initClipEndTime = 60;
 let clipStartTime = initClipStartTime;
 let clipEndTime = initClipEndTime;
-function settingClipVideo(request) {
-  const videoPlayer = document.querySelector('video');
+function setClipVideo(request) {
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
     return;
   }
 
   if (request === "clip") {
-    resetClipVideo(videoPlayer)
-    applyClipVideo(videoPlayer, clipStartTime, clipEndTime)
+    resetClipVideo();
+    applyClipVideo(clipStartTime, clipEndTime);
+    seekToTimeClipVideo(clipStartTime);
+    isClipMode = true;
   } else {
-    resetClipVideo(videoPlayer)
+    resetClipVideo();
+    resetClipVideoTime();
+    isClipMode = false;
+    localStorage.setItem('isClipMode', JSON.stringify(false));
   }
 }
 
 let playListener, timeupdateListener, seekedListener;
-function applyClipVideo(videoPlayer, startTime, endTime) {
+function applyClipVideo(startTime, endTime) {
 
   if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
     videoPlayer.currentTime = startTime;
@@ -411,13 +418,13 @@ function applyClipVideo(videoPlayer, startTime, endTime) {
   }
 
   if (!playListener) {
-    playListener = () => play(videoPlayer, startTime, endTime);
+    playListener = () => play(startTime, endTime);
   }
   if (!timeupdateListener) {
-    timeupdateListener = () => timeupdate(videoPlayer, startTime, endTime);
+    timeupdateListener = () => timeupdate(startTime, endTime);
   }
   if (!seekedListener) {
-    seekedListener = () => seeked(videoPlayer, startTime, endTime);
+    seekedListener = () => seeked(startTime, endTime);
   }
 
   videoPlayer.addEventListener("play", playListener);
@@ -425,25 +432,29 @@ function applyClipVideo(videoPlayer, startTime, endTime) {
   videoPlayer.addEventListener("seeked", seekedListener);
 }
 
-function resetClipVideo(videoPlayer) {
+function seekToTimeClipVideo(startTime) {
+  videoPlayer.currentTime = startTime;
+}
+
+function resetClipVideo() {
   if (playListener) videoPlayer.removeEventListener("play", playListener);
   if (timeupdateListener) videoPlayer.removeEventListener("timeupdate", timeupdateListener);
   if (seekedListener) videoPlayer.removeEventListener("seeked", seekedListener);
 }
 
-function play(videoPlayer, startTime, endTime) {
+function play(startTime, endTime) {
   if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
     videoPlayer.currentTime = startTime;
   }
 }
 
-function timeupdate(videoPlayer, startTime, endTime) {
+function timeupdate(startTime, endTime) {
   if (videoPlayer.currentTime >= endTime) {
     videoPlayer.currentTime = startTime;
   }
 }
 
-function seeked(videoPlayer, startTime, endTime) {
+function seeked(startTime, endTime) {
   if (videoPlayer.currentTime < startTime || videoPlayer.currentTime > endTime) {
     videoPlayer.currentTime = startTime;
   }
@@ -452,4 +463,26 @@ function seeked(videoPlayer, startTime, endTime) {
 function resetClipVideoTime() {
   clipStartTime = initClipStartTime;
   clipEndTime = initClipEndTime;
+}
+
+function isEmbedURL (url) {
+  const regex = /^(https?:\/\/(?:www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]+)(\?start=[\d\.]+&end=[\d\.]+)?$/;
+  const result = regex.test(url);
+  return result;
+}
+
+function seekToStartTime() {
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりませんでした");
+    return;
+  }
+  
+  const url = new URL(window.location.href);
+  let time = url.searchParams.get("t");
+  time = parseFloat(time);  
+  if (!time) { time = 0; }
+
+  if (videoPlayer) {
+    videoPlayer.currentTime = time;
+  }
 }

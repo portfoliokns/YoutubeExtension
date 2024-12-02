@@ -1,66 +1,109 @@
+const resetButton = document.getElementById("resetButton");
+const clipOpenButton = document.getElementById("clipOpenButton");
+const clipSettings = document.getElementById("clipSettings");
+const clipSaveButton = document.getElementById("clipSaveButton");
+const clipName = document.getElementById("clipName");
+const clipApplyButton = document.getElementById("clipApplyButton");
+const clipResetButton = document.getElementById("clipResetButton");
+const startTimeHh = document.getElementById("startTimeHh");
+const startTimeMm = document.getElementById("startTimeMm");
+const startTimeSs = document.getElementById("startTimeSs");
+const startTimeMs = document.getElementById("startTimeMs");
+const endTimeHh = document.getElementById("endTimeHh");
+const endTimeMm = document.getElementById("endTimeMm");
+const endTimeSs = document.getElementById("endTimeSs");
+const endTimeMs = document.getElementById("endTimeMs");
+const filterButton = document.getElementById("filterButton");
+const filterSliders = document.getElementById("filterSliders");
+const brightness = document.getElementById("brightness");
+const contrast = document.getElementById("contrast");
+const saturate = document.getElementById("saturate");
+const grayscale = document.getElementById("grayscale");
+const sepia = document.getElementById("sepia");
+const hueRotate = document.getElementById("hueRotate");
+const invert = document.getElementById("invert");
+const blurred = document.getElementById("blurred");
+const opacity = document.getElementById("opacity");
+const leftRight = document.getElementById("leftRight");
+const upDown = document.getElementById("upDown");
+const hideControls = document.getElementById("hideControls");
+const cameraButton = document.getElementById("cameraButton");
+
 window.addEventListener('load', function() {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "setting" }, (response) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "getPlayerParameters" }, (response) => {
+
       if (response) {
-        document.getElementById("brightness").value = response.brightness;
-        document.getElementById("contrast").value = response.contrast;
-        document.getElementById("saturate").value = response.saturate;
-        document.getElementById("grayscale").value = response.grayscale;
-        document.getElementById("sepia").value = response.sepia;
-        document.getElementById("hueRotate").value = response.hueRotate;
-        document.getElementById("invert").value = response.invert;
-        document.getElementById("blurred").value = response.blurred;
-        document.getElementById("opacity").value = response.opacity;
-        
-        leftRightReverse = response.leftRightReverse;
-        upDownReverse = response.upDownReverse;
-        hideControls = response.hideControls;
-        if (hideControls) {
-          document.getElementById("hideControls").textContent = "コントロール表示";
-        } else {
-          document.getElementById("hideControls").textContent = "コントロール非表示";
+        brightness.value = response.brightness;
+        contrast.value = response.contrast;
+        saturate.value = response.saturate;
+        grayscale.value = response.grayscale;
+        sepia.value = response.sepia;
+        hueRotate.value = response.hueRotate;
+        invert.value = response.invert;
+        blurred.value = response.blurred;
+        opacity.value = response.opacity;
+
+        if (response.leftRightReverse) { leftRight.checked = true; }
+        if (response.upDownReverse) { upDown.checked = true; }
+        if (response.hideControls) { hideControls.checked = true; }
+
+        let isClipMode = response.isClipMode
+        if (isClipMode) {
+          clipSaveButton.disabled = false;
+          clipSaveButton.classList.remove("disabled");
+          clipResetButton.disabled = false;
+          clipResetButton.classList.remove("disabled");
         }
 
+        clipName.value = JSON.parse(localStorage.getItem('clipName'));
+
         let clipStartTime = response.clipStartTime;
-        let startTime = seconds2time(clipStartTime)
-        document.getElementById("startTimeHh").value = startTime.hhTime;
-        document.getElementById("startTimeMm").value = startTime.mmTime;
-        document.getElementById("startTimeSs").value = startTime.ssTime;
-        document.getElementById("startTimeMs").value = startTime.msTime;
+        let startTime = seconds2time(clipStartTime);
+        startTimeHh.value = startTime.hhTime;
+        startTimeMm.value = startTime.mmTime;
+        startTimeSs.value = startTime.ssTime;
+        startTimeMs.value = startTime.msTime;
 
         let clipEndTime = response.clipEndTime;
         let endTime = seconds2time(clipEndTime)
-        document.getElementById("endTimeHh").value = endTime.hhTime;
-        document.getElementById("endTimeMm").value = endTime.mmTime;
-        document.getElementById("endTimeSs").value = endTime.ssTime;
-        document.getElementById("endTimeMs").value = endTime.msTime;
-
+        endTimeHh.value = endTime.hhTime;
+        endTimeMm.value = endTime.mmTime;
+        endTimeSs.value = endTime.ssTime;
+        endTimeMs.value = endTime.msTime;
       }
+
     });
   });
 });
 
-document.getElementById("reset").addEventListener("click", () => {
+resetButton.addEventListener("click", (event) => {
+  event.preventDefault();
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
       if (response?.apply) {
-        document.getElementById("startTimeHh").value = 0;
-        document.getElementById("startTimeMm").value = 0;
-        document.getElementById("startTimeSs").value = 0;
-        document.getElementById("startTimeMs").value = 0;
-        document.getElementById("endTimeHh").value = 0;
-        document.getElementById("endTimeMm").value = 1;
-        document.getElementById("endTimeSs").value = 0;
-        document.getElementById("endTimeMs").value = 0;
-        document.getElementById("brightness").value = 1
-        document.getElementById("contrast").value = 1
-        document.getElementById("saturate").value = 1
-        document.getElementById("grayscale").value = 0
-        document.getElementById("sepia").value = 0
-        document.getElementById("hueRotate").value = 0
-        document.getElementById("invert").value = 0
-        document.getElementById("blurred").value = 0
-        document.getElementById("opacity").value = 1
+        startTimeHh.value = 0;
+        startTimeMm.value = 0;
+        startTimeSs.value = 0;
+        startTimeMs.value = 0;
+        endTimeHh.value = 0;
+        endTimeMm.value = 1;
+        endTimeSs.value = 0;
+        endTimeMs.value = 0;
+        brightness.value = 1;
+        contrast.value = 1;
+        saturate.value = 1;
+        grayscale.value = 0;
+        sepia.value = 0;
+        hueRotate.value = 0;
+        invert.value = 0;
+        blurred.value = 0;
+        opacity.value = 1;
+        clipName.value = "";
+        leftRight.checked = false;
+        upDown.checked = false;
+        hideControls.checked = false;
       } else {
         console.log('リセットに失敗')
       };
@@ -69,181 +112,188 @@ document.getElementById("reset").addEventListener("click", () => {
 });
 
 let isOpenClip = false;
-document.getElementById("clip").addEventListener("click", () =>{
-  const filters = document.getElementById("clipTimes");
+clipOpenButton.addEventListener("click", (event) =>{
+  event.preventDefault();
+
   if (isOpenClip) {
-    document.getElementById("clip").innerText = "クリップ設定を表示"
-    filters.style.display = "none";
+    clipOpenButton.value = "クリップ設定を表示"
+    clipSettings.style.display = "none";
   } else {
-    document.getElementById("clip").innerText = "クリップ設定を閉じる"
-    filters.style.display = "block";
+    clipOpenButton.value = "クリップ設定を閉じる"
+    clipSettings.style.display = "block";
   }
   isOpenClip = !isOpenClip
 });
 
-document.getElementById("clipApply").addEventListener("click", () => {
-  sendClipQuery()
-});
+clipName.addEventListener("blur", () => {
+  localStorage.setItem('clipName', JSON.stringify(clipName.value));
+})
 
-document.getElementById("clipReset").addEventListener("click", () => {
-  let hhStart = parseInt(document.getElementById("startTimeHh").value, 10);
-  let mmStart = parseInt(document.getElementById("startTimeMm").value, 10);
-  let ssStart = parseInt(document.getElementById("startTimeSs").value, 10);
-  let msStart = parseInt(document.getElementById("startTimeMs").value, 10);
-
-  let hhEnd = parseInt(document.getElementById("endTimeHh").value, 10);
-  let mmEnd = parseInt(document.getElementById("endTimeMm").value, 10);
-  let ssEnd = parseInt(document.getElementById("endTimeSs").value, 10);
-  let msEnd = parseInt(document.getElementById("endTimeMs").value, 10);
-
-  let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
-  let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
+clipSaveButton.addEventListener("click", (event) => {
+  event.preventDefault();
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "clipEnd", startTime: startTime, endTime: endTime});
+    chrome.tabs.sendMessage(tabs[0].id, { command: "clipSave"}, (response) => {
+      if (response?.url) {
+        
+        let title = clipName.value;
+        if (!title) { title = tabs[0].title; }
+
+        let youtubeUrl = tabs[0].url;
+        let videoID = url2videoID(youtubeUrl);
+        if (!videoID) {
+          alert('該当するvideoIDがありませんでした。URLにvideoIDが含まれるかを確認してください。')
+          return;
+        }
+
+        let hhStart = parseInt(startTimeHh.value, 10);
+        let mmStart = parseInt(startTimeMm.value, 10);
+        let ssStart = parseInt(startTimeSs.value, 10);
+        let msStart = parseInt(startTimeMs.value, 10);
+        let hhEnd = parseInt(endTimeHh.value, 10);
+        let mmEnd = parseInt(endTimeMm.value, 10);
+        let ssEnd = parseInt(endTimeSs.value, 10);
+        let msEnd = parseInt(endTimeMs.value, 10);
+
+        let startTime = time2seconds(hhStart,mmStart,ssStart,msStart);
+        let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd);
+
+        fetch(response.url)
+          .then((res) => res.blob())
+          .then((blob) => {
+            // フォームデータを作成
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("videoID", videoID);
+            formData.append("start_time", startTime);
+            formData.append("end_time", endTime);
+            formData.append("image", blob, "image.png");
+
+            fetch("http://localhost:6789/images", {
+              method: "POST",
+              body: formData,
+              }
+            )
+            .then((response) => response.json())
+            .then((data) => alert("成功: " + JSON.stringify(data)))
+            .catch((error) => alert("エラー：",  + JSON.stringify(error)))
+        })
+      }
+    });
   });
+
 });
 
-let isOpenFilters = false
-document.getElementById("filter").addEventListener("click", () =>{
-  const filters = document.getElementById("filterSliders");
+clipApplyButton.addEventListener("click", (event) => {
+  event.preventDefault();
+
+  sendClipApply()
+  clipSaveButton.disabled = false;
+  clipSaveButton.classList.remove("disabled");
+  clipResetButton.disabled = false;
+  clipResetButton.classList.remove("disabled");
+});
+
+clipResetButton.addEventListener("click", (event) => {
+  event.preventDefault();
+
+  sendClipRelease();
+  clipSaveButton.disabled = true;
+  clipSaveButton.classList.add("disabled");
+  clipResetButton.disabled = true;
+  clipResetButton.classList.add("disabled");
+});
+
+let isOpenFilters = false;
+filterButton.addEventListener("click", (event) =>{
+  event.preventDefault();
+
   if (isOpenFilters) {
-    document.getElementById("filter").innerText = "フィルター設定を表示"
-    filters.style.display = "none";
+    filterButton.value = "フィルター設定を表示"
+    filterSliders.style.display = "none";
   } else {
-    document.getElementById("filter").innerText = "フィルター設定を閉じる"
-    filters.style.display = "block";
+    filterButton.value = "フィルター設定を閉じる"
+    filterSliders.style.display = "block";
   }
-  isOpenFilters = !isOpenFilters
+  isOpenFilters = !isOpenFilters;
 });
 
-function sendClipQuery() {
-  let hhStart = parseInt(document.getElementById("startTimeHh").value, 10);
-  let mmStart = parseInt(document.getElementById("startTimeMm").value, 10);
-  let ssStart = parseInt(document.getElementById("startTimeSs").value, 10);
-  let msStart = parseInt(document.getElementById("startTimeMs").value, 10);
-  
-  let hhEnd = parseInt(document.getElementById("endTimeHh").value, 10);
-  let mmEnd = parseInt(document.getElementById("endTimeMm").value, 10);
-  let ssEnd = parseInt(document.getElementById("endTimeSs").value, 10);
-  let msEnd = parseInt(document.getElementById("endTimeMs").value, 10);
-  
-  let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
-  let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
-
-  if ( startTime >= endTime) {
-    alert('開始時刻が終了時刻を上まってしまっています。開始時刻と終了時刻を設定し直してください。')
-    return;
-  }
-
+brightness.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "clip", startTime: startTime, endTime: endTime });
-  });
-}
-
-document.getElementById("brightness").addEventListener("input", () => {
-  const brightness = document.getElementById("brightness").value;
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "brightness", value: brightness });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "brightness", value: brightness.value });
   });
 });
 
-document.getElementById("contrast").addEventListener("input", () => {
-  const contrast = document.getElementById("contrast").value;
+contrast.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "contrast", value: contrast });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "contrast", value: contrast.value });
   });
 });
 
-document.getElementById("saturate").addEventListener("input", () => {
-  const saturate = document.getElementById("saturate").value;
+saturate.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "saturate", value: saturate });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "saturate", value: saturate.value });
   });
 });
 
-document.getElementById("grayscale").addEventListener("input", () => {
-  const grayscale = document.getElementById("grayscale").value;
+grayscale.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "grayscale", value: grayscale });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "grayscale", value: grayscale.value });
   });
 });
 
-document.getElementById("sepia").addEventListener("input", () => {
-  const sepia = document.getElementById("sepia").value;
+sepia.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "sepia", value: sepia });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "sepia", value: sepia.value });
   });
 });
 
 document.getElementById("hueRotate").addEventListener("input", () => {
-  const hueRotate = document.getElementById("hueRotate").value;
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "hueRotate", value: hueRotate });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "hueRotate", value: hueRotate.value });
   });
 });
 
-document.getElementById("invert").addEventListener("input", () => {
-  const invert = document.getElementById("invert").value;
+invert.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "invert", value: invert });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "invert", value: invert.value });
   });
 });
 
-document.getElementById("blurred").addEventListener("input", () => {
-  const blurred = document.getElementById("blurred").value;
+blurred.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "blurred", value: blurred });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "blurred", value: blurred.value });
   });
 });
 
-document.getElementById("opacity").addEventListener("input", () => {
-  const opacity = document.getElementById("opacity").value;
+opacity.addEventListener("input", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "opacity", value: opacity });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "opacity", value: opacity.value });
   });
 });
 
-let leftRightReverse = false;
-document.getElementById("leftRight").addEventListener("click", () => {
-  if (leftRightReverse) {
-    leftRightReverse = false;
-  } else {
-    leftRightReverse = true;
-  }
+leftRight.addEventListener("change", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "leftRight", value: leftRightReverse });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "leftRight" });
   });
 });
 
-let upDownReverse = false;
-document.getElementById("upDown").addEventListener("click", () => {
-  if (upDownReverse) {
-    upDownReverse = false;
-  } else {
-    upDownReverse = true;
-  }
+upDown.addEventListener("change", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "upDown", value: upDownReverse });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "upDown" });
   });
 });
 
-let hideControls;
-document.getElementById("hideControls").addEventListener("click", () => {
-  if (hideControls) {
-    hideControls = false
-    document.getElementById("hideControls").textContent = "コントロール非表示";
-  } else {
-    hideControls = true
-    document.getElementById("hideControls").textContent = "コントロール表示";
-  }
-  
+hideControls.addEventListener("click", () => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    chrome.tabs.sendMessage(tabs[0].id, { command: "hideControls", value: hideControls });
+    chrome.tabs.sendMessage(tabs[0].id, { command: "hideControls" });
   });
+
 });
 
-document.getElementById("camera").addEventListener("click", () => {
+cameraButton.addEventListener("click", (event) => {
+  event.preventDefault();
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "camera"}, (response) => {
       if (response?.url) {
@@ -258,6 +308,36 @@ document.getElementById("camera").addEventListener("click", () => {
     });
   });
 });
+
+function sendClipApply() {
+  let hhStart = parseInt(startTimeHh.value, 10);
+  let mmStart = parseInt(startTimeMm.value, 10);
+  let ssStart = parseInt(startTimeSs.value, 10);
+  let msStart = parseInt(startTimeMs.value, 10);
+  let hhEnd = parseInt(endTimeHh.value, 10);
+  let mmEnd = parseInt(endTimeMm.value, 10);
+  let ssEnd = parseInt(endTimeSs.value, 10);
+  let msEnd = parseInt(endTimeMs.value, 10);
+  
+  let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
+  let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
+
+  if (startTime >= endTime) {
+    alert('開始時刻が終了時刻を上まってしまっています。開始時刻と終了時刻を設定し直してください。')
+    return;
+  }
+
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "clip", startTime: startTime, endTime: endTime });
+  });
+}
+
+function sendClipRelease() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "clipEnd" });
+  });
+}
+
 
 function time2seconds(hhTime, mmTime, ssTime, msTime) {
   let seconds = 0;
@@ -288,4 +368,14 @@ function seconds2time(totalSeconds) {
     ssTime: ssTime,
     msTime: msTime
   };
+}
+
+function url2videoID(url){
+  let videoID;
+  if (URL.canParse(url)) {
+    const url_instance = new URL(url)
+    videoID = url_instance.searchParams.get("v");
+    if (url.includes('?si=')) videoID = url.split("?si=")[0].split("/")[3];
+  }
+  return videoID;
 }
