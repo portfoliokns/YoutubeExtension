@@ -258,7 +258,6 @@ function observeVideoElement() {
         resetPlayerReverse();
         resetController();
         setClipVideo("reset");
-        seekToStartTime();
         console.log('動画のフィルターやパラメータをリセットしました');
       });
 
@@ -443,26 +442,4 @@ function seeked(startTime, endTime) {
 function resetClipVideoTime() {
   clipStartTime = initClipStartTime;
   clipEndTime = initClipEndTime;
-}
-
-function isEmbedURL (url) {
-  const regex = /^(https?:\/\/(?:www\.)?youtube\.com\/embed\/[a-zA-Z0-9_-]+)(\?start=[\d\.]+&end=[\d\.]+)?$/;
-  const result = regex.test(url);
-  return result;
-}
-
-function seekToStartTime() {
-  if (!videoPlayer) {
-    console.log("動画プレーヤーが見つかりませんでした");
-    return;
-  }
-  
-  const url = new URL(window.location.href);
-  let time = url.searchParams.get("t");
-  time = parseFloat(time);  
-  if (!time) { time = 0; }
-
-  if (videoPlayer) {
-    videoPlayer.currentTime = time;
-  }
 }
