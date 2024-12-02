@@ -7,15 +7,15 @@
   </head>
   <body>
     <form action="#">
-      <input type="submit" id="reset" class="" value="リセット">
+      <input type="submit" id="resetButton" class="" value="リセット">
     </form>
     <form action="#">
-      <input type="submit" id="clip" class="" value="クリップ設定を表示">
+      <input type="submit" id="clipOpenButton" class="" value="クリップ設定を表示">
     </form>
-    <div id="clipTimes" class="hidden">
+    <div id="clipSettings" class="hidden">
       <form action="#">
         <input type="text" id="clipName" placeholder="クリップ名を記入">
-        <input type="submit" id="clipSave" class="" value="保存(localserver連携)" disabled>
+        <input type="submit" id="clipSaveButton" class="" value="保存(localserver連携)" disabled>
       </form>
       <form action="#">
         <label for="startTime">開始時刻 hh:mm:ss:ms</label>
@@ -32,14 +32,14 @@
           <input type="number" id="endTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
           <input type="number" id="endTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
         </div>
-        <input type="submit" id="clipApply" class="" value="クリップ適応">
+        <input type="submit" id="clipApplyButton" class="" value="クリップ適応">
       </form>
       <form action="#">
-        <input type="submit" id="clipReset" class="" value="クリップ解除" disabled>
+        <input type="submit" id="clipResetButton" class="" value="クリップ解除" disabled>
       </form>
     </div>
     <form action="#">
-      <input type="submit" id="filter" class="" value="フィルター設定を表示">
+      <input type="submit" id="filterButton" class="" value="フィルター設定を表示">
       <div id="filterSliders" class="hidden">
         <div>
           <label for="brightness">明るさ:</label>
@@ -80,16 +80,19 @@
       </div>
     </form>
     <form action="#">
-      <input type="submit" id="leftRight" class="" value="左右反転">
+      <input type="checkbox" id="leftRight" class="">
+      <label for="leftRight">左右反転:</label>
     </form>
     <form action="#">
-      <input type="submit" id="upDown" class="" value="上下反転">
+      <input type="checkbox" id="upDown" class="">
+      <label for="upDown">上下反転:</label>
     </form>
     <form action="#">
-      <input type="submit" id="hideControls" class="" value="コントロール非表示">
+      <input type="checkbox" id="hideControls" class="">
+      <label for="hideControls">コントロール非表示:</label>
     </form>
     <form action="#">
-      <input type="submit" id="camera" class="" value="キャプチャ">
+      <input type="submit" id="cameraButton" class="" value="キャプチャ">
     </form>
     <script src="popup.js"></script>
   </body>
