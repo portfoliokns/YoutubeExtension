@@ -2,42 +2,24 @@ const videoPlayer = document.querySelector('video');
 
 window.addEventListener('load', function() {
 
-  //埋め込みURLにアクセスした場合、擬似クリップにリダイレクト
-  const url = new URL(window.location.href);
-  if (isEmbedURL(url.href)) {
-    isClipMode = "true";
-    const urlObject = new URL(url.href);
-    const urlParams = new URLSearchParams(urlObject.search);
-    const videoID = urlObject.pathname.split('/').pop();
-    let clipModeStart = parseFloat(urlParams.get('start'));
-    let clipModeEnd = parseFloat(urlParams.get('end'));
-    localStorage.setItem('isClipMode', JSON.stringify(isClipMode));
-    localStorage.setItem('clipModeStart', JSON.stringify(clipModeStart));
-    localStorage.setItem('clipModeEnd', JSON.stringify(clipModeEnd));
-    window.location.href = "https://www.youtube.com/watch?v=" + videoID;
-    return
-  }
+  chrome.storage.local.get(['isClipMode', 'clipStartTime', 'clipEndTime'], function(result) {
+    if (result.isClipMode === undefined) { result.isClipMode = false }
 
-  isClipMode = JSON.parse(localStorage.getItem('isClipMode'));
-  if (isClipMode) {
-    clipStartTime = JSON.parse(localStorage.getItem('clipModeStart'));
-    clipEndTime = JSON.parse(localStorage.getItem('clipModeEnd'));
-    setClipVideo("clip")
-    localStorage.setItem('isClipMode', JSON.stringify(!isClipMode));
-  }
+    // isClipMode = result.isClipMode;
+    if (result.isClipMode) {
+      clipStartTime = result.clipStartTime;
+      clipEndTime = result.clipEndTime;
+      setClipVideo("clip");
+      chrome.storage.local.set({ clipModeStart: 0 });
+      chrome.storage.local.set({ clipModeEnd: 60 });
+      chrome.storage.local.set({ isClipMode: false });
+    }
+  });
 
   //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
   const shadowTop = document.querySelector('.ytp-gradient-top');
   if (shadowTop) {
     shadowTop.style.display = 'none';
-  }
-});
-
-window.addEventListener('beforeunload', (event) => {
-  const url = new URL(window.location.href);
-  if (!isEmbedURL(url.href)) {
-    isClipMode = false;
-    localStorage.setItem('isClipMode', JSON.stringify(false));
   }
 });
 
@@ -394,7 +376,6 @@ function setClipVideo(request) {
     resetClipVideo();
     resetClipVideoTime();
     isClipMode = false;
-    localStorage.setItem('isClipMode', JSON.stringify(false));
   }
 }
 
