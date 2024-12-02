@@ -1,11 +1,9 @@
-const videoPlayer = document.querySelector('video');
+let videoPlayer = document.querySelector('video');
 
 window.addEventListener('load', function() {
-
   chrome.storage.local.get(['isClipMode', 'clipStartTime', 'clipEndTime'], function(result) {
     if (result.isClipMode === undefined) { result.isClipMode = false }
 
-    // isClipMode = result.isClipMode;
     if (result.isClipMode) {
       clipStartTime = result.clipStartTime;
       clipEndTime = result.clipEndTime;
@@ -254,6 +252,7 @@ function observeVideoElement() {
     // 動画が再生中である場合のみ処理を実行
     if (!observedVideoPlayer.paused) {
       observedVideoPlayer.addEventListener('loadeddata', function() {
+        if (videoPlayer === null) { videoPlayer = document.querySelector('video') };
         resetFilters();
         applyFilters();
         resetPlayerReverse();
