@@ -309,6 +309,45 @@ cameraButton.addEventListener("click", (event) => {
   });
 });
 
+document.addEventListener('keydown', function(event) {
+  const activeElement = document.activeElement;
+  if (activeElement.tagName === 'INPUT') {
+    return;
+  }
+
+  let pressKey = event.key;
+  if ([' ', 'l', 'j', 'i', 'k'].includes(pressKey)) {
+    event.preventDefault();
+  }
+  
+  let command;
+  switch (pressKey) {
+    case ' ':
+      command = "playStop"
+      break;
+    case 'l':
+      command = "forward"
+      break;
+    case 'j':
+      command = "back"
+      break;
+    case 'i':
+      command = "upAudio"
+      break;
+    case 'k':
+      command = "downAudio"
+      break;
+    default:
+      return;
+  }
+
+  if (command) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: command });
+    });
+  }
+});
+
 function sendClipApply() {
   let hhStart = parseInt(startTimeHh.value, 10);
   let mmStart = parseInt(startTimeMm.value, 10);

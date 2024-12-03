@@ -22,6 +22,31 @@ window.addEventListener('load', function() {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.command === "playStop") {
+    playVideo();
+    return;
+  }
+
+  if (message.command === "forward") {
+    forwardVideo();
+    return;
+  }
+
+  if (message.command === "back") {
+    backVideo();
+    return;
+  }
+
+  if (message.command === "upAudio") {
+    upAudio();
+    return;
+  }
+
+  if (message.command === "downAudio") {
+    downAudio();
+    return;
+  }
+
   if (message.command === "getPlayerParameters" ) {
     sendResponse({
       brightness: brightness,
@@ -442,4 +467,32 @@ function seeked(startTime, endTime) {
 function resetClipVideoTime() {
   clipStartTime = initClipStartTime;
   clipEndTime = initClipEndTime;
+}
+
+function playVideo() {
+  if (videoPlayer.paused) {
+    videoPlayer.play();
+  } else {
+    videoPlayer.pause();
+  }
+}
+
+function forwardVideo() {
+  let setTime = videoPlayer.currentTime + 5;
+  videoPlayer.currentTime = setTime;
+}
+
+function backVideo() {
+  let setTime = videoPlayer.currentTime - 5;
+  videoPlayer.currentTime = setTime;
+}
+
+function upAudio() {
+  let newVolume =  Math.min(videoPlayer.volume + 0.05, 1);
+  videoPlayer.volume = Math.round(newVolume * 100) / 100
+}
+
+function downAudio() {
+  let newVolume =  Math.max(videoPlayer.volume - 0.05, 0);
+  videoPlayer.volume = Math.round(newVolume * 100) / 100
 }
