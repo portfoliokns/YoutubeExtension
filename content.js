@@ -173,6 +173,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if ( message.command === "getNowSeconds") {
+    sendResponse({ seconds: videoPlayer.currentTime });
+    return true;
+  }
+
 });
 
 var initBrightness = 1;
