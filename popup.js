@@ -375,7 +375,17 @@ function sendClipApply() {
   let mmEnd = parseInt(endTimeMm.value, 10);
   let ssEnd = parseInt(endTimeSs.value, 10);
   let msEnd = parseInt(endTimeMs.value, 10);
-  
+
+  if (
+    hhStart < 0 || mmStart < 0 || ssStart < 0 || msStart < 0 ||
+    hhEnd < 0 || mmEnd < 0 || ssEnd < 0 || msEnd < 0 ||
+    Number.isNaN(hhStart) || Number.isNaN(mmStart) || Number.isNaN(ssStart) || Number.isNaN(msStart) ||
+    Number.isNaN(hhEnd) || Number.isNaN(mmEnd) || Number.isNaN(ssEnd) || Number.isNaN(msEnd)
+  ) {
+    alert('開始時刻または終了時刻に正の数値を入力してください。');
+    return;
+  }
+
   let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
   let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
 
