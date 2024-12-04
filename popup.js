@@ -355,6 +355,18 @@ document.addEventListener('keydown', function(event) {
     case 'k':
       command = "downAudio"
       break;
+    case 'ArrowRight':
+      command = "forward"
+      break;
+    case 'ArrowLeft':
+      command = "back"
+      break;
+    case 'ArrowUp':
+      command = "upAudio"
+      break;
+    case 'ArrowDown':
+      command = "downAudio"
+      break;
     default:
       return;
   }
