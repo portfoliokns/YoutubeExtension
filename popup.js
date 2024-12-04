@@ -5,6 +5,8 @@ const clipSaveButton = document.getElementById("clipSaveButton");
 const clipName = document.getElementById("clipName");
 const clipApplyButton = document.getElementById("clipApplyButton");
 const clipResetButton = document.getElementById("clipResetButton");
+const startTimeLabel = document.getElementById("startTimeLabel");
+const endTimeLabel = document.getElementById("endTimeLabel");
 const startTimeHh = document.getElementById("startTimeHh");
 const startTimeMm = document.getElementById("startTimeMm");
 const startTimeSs = document.getElementById("startTimeSs");
@@ -60,17 +62,11 @@ window.addEventListener('load', function() {
 
         let clipStartTime = response.clipStartTime;
         let startTime = seconds2time(clipStartTime);
-        startTimeHh.value = startTime.hhTime;
-        startTimeMm.value = startTime.mmTime;
-        startTimeSs.value = startTime.ssTime;
-        startTimeMs.value = startTime.msTime;
+        setStartTimes(startTime);
 
         let clipEndTime = response.clipEndTime;
-        let endTime = seconds2time(clipEndTime)
-        endTimeHh.value = endTime.hhTime;
-        endTimeMm.value = endTime.mmTime;
-        endTimeSs.value = endTime.ssTime;
-        endTimeMs.value = endTime.msTime;
+        let endTime = seconds2time(clipEndTime);
+        setEndTimes(endTime);
       }
 
     });
@@ -182,6 +178,28 @@ clipSaveButton.addEventListener("click", (event) => {
     });
   });
 
+});
+
+startTimeLabel.addEventListener("click", (event) => {
+  event.preventDefault();
+  getNowTime((startTime) => {
+    if (startTime) {
+      setStartTimes(startTime)
+    } else {
+      console.log("時刻の取得に失敗しました");
+    }
+  });
+});
+
+endTimeLabel.addEventListener("click", (event) => {
+  event.preventDefault();
+  getNowTime((endTime) => {
+    if (endTime) {
+      setEndTimes(endTime)
+    } else {
+      console.log("時刻の取得に失敗しました");
+    }
+  });
 });
 
 clipApplyButton.addEventListener("click", (event) => {
@@ -309,6 +327,57 @@ cameraButton.addEventListener("click", (event) => {
   });
 });
 
+document.addEventListener('keydown', function(event) {
+  const activeElement = document.activeElement;
+  if (activeElement.tagName === 'INPUT') {
+    return;
+  }
+
+  let pressKey = event.key;
+  if ([' ', 'l', 'j', 'i', 'k'].includes(pressKey)) {
+    event.preventDefault();
+  }
+  
+  let command;
+  switch (pressKey) {
+    case ' ':
+      command = "playStop"
+      break;
+    case 'l':
+      command = "forward"
+      break;
+    case 'j':
+      command = "back"
+      break;
+    case 'i':
+      command = "upAudio"
+      break;
+    case 'k':
+      command = "downAudio"
+      break;
+    case 'ArrowRight':
+      command = "forward"
+      break;
+    case 'ArrowLeft':
+      command = "back"
+      break;
+    case 'ArrowUp':
+      command = "upAudio"
+      break;
+    case 'ArrowDown':
+      command = "downAudio"
+      break;
+    default:
+      return;
+  }
+
+  if (command) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      chrome.tabs.sendMessage(tabs[0].id, { command: command });
+    });
+  }
+});
+
 function sendClipApply() {
   let hhStart = parseInt(startTimeHh.value, 10);
   let mmStart = parseInt(startTimeMm.value, 10);
@@ -318,7 +387,17 @@ function sendClipApply() {
   let mmEnd = parseInt(endTimeMm.value, 10);
   let ssEnd = parseInt(endTimeSs.value, 10);
   let msEnd = parseInt(endTimeMs.value, 10);
-  
+
+  if (
+    hhStart < 0 || mmStart < 0 || ssStart < 0 || msStart < 0 ||
+    hhEnd < 0 || mmEnd < 0 || ssEnd < 0 || msEnd < 0 ||
+    Number.isNaN(hhStart) || Number.isNaN(mmStart) || Number.isNaN(ssStart) || Number.isNaN(msStart) ||
+    Number.isNaN(hhEnd) || Number.isNaN(mmEnd) || Number.isNaN(ssEnd) || Number.isNaN(msEnd)
+  ) {
+    alert('開始時刻または終了時刻に正の数値を入力してください。');
+    return;
+  }
+
   let startTime = time2seconds(hhStart,mmStart,ssStart,msStart)
   let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd)
 
@@ -368,6 +447,35 @@ function seconds2time(totalSeconds) {
     ssTime: ssTime,
     msTime: msTime
   };
+}
+
+function getNowTime(callback) {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    chrome.tabs.sendMessage(tabs[0].id, { command: "getNowSeconds" }, (response) => {
+      if (response?.seconds) {
+        let seconds = Math.floor(response.seconds);
+        let time = seconds2time(seconds);
+        callback(time);
+      } else {
+        console.log('時刻の取得に失敗しました')
+        callback(null);
+      }
+    })
+  });
+}
+
+function setStartTimes(startTime) {
+  startTimeHh.value = startTime.hhTime;
+  startTimeMm.value = startTime.mmTime;
+  startTimeSs.value = startTime.ssTime;
+  startTimeMs.value = startTime.msTime;
+}
+
+function setEndTimes(endTime) {
+  endTimeHh.value = endTime.hhTime;
+  endTimeMm.value = endTime.mmTime;
+  endTimeSs.value = endTime.ssTime;
+  endTimeMs.value = endTime.msTime;
 }
 
 function url2videoID(url){
