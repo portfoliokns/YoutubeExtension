@@ -482,22 +482,24 @@ function playVideo() {
   }
 }
 
+let timeParams = 5;
 function forwardVideo() {
-  let setTime = videoPlayer.currentTime + 5;
+  let setTime = videoPlayer.currentTime + timeParams;
   videoPlayer.currentTime = setTime;
 }
 
 function backVideo() {
-  let setTime = videoPlayer.currentTime - 5;
+  let setTime = videoPlayer.currentTime - timeParams;
   videoPlayer.currentTime = setTime;
 }
 
+let audioParams = 0.05;
 function upAudio() {
-  let newVolume =  Math.min(videoPlayer.volume + 0.05, 1);
+  let newVolume =  Math.min(videoPlayer.volume + audioParams, 1);
   videoPlayer.volume = Math.round(newVolume * 100) / 100
 }
 
 function downAudio() {
-  let newVolume =  Math.max(videoPlayer.volume - 0.05, 0);
+  let newVolume =  Math.max(videoPlayer.volume - audioParams, 0);
   videoPlayer.volume = Math.round(newVolume * 100) / 100
 }
