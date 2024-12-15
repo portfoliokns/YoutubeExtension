@@ -419,7 +419,11 @@ function resetController() {
 
 let isClipMode = false;
 let clipStartTime = 0;
-let clipEndTime = 0;
+let clipEndTime
+if (videoPlayer) {
+  clipEndTime = videoPlayer.duration;
+}
+
 function setClipVideo(request) {
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
