@@ -78,28 +78,29 @@ resetButton.addEventListener("click", (event) => {
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
-      if (response?.apply) {
-        startTimeHh.value = 0;
-        startTimeMm.value = 0;
-        startTimeSs.value = 0;
-        startTimeMs.value = 0;
-        endTimeHh.value = 0;
-        endTimeMm.value = 1;
-        endTimeSs.value = 0;
-        endTimeMs.value = 0;
-        brightness.value = 1;
-        contrast.value = 1;
-        saturate.value = 1;
-        grayscale.value = 0;
-        sepia.value = 0;
-        hueRotate.value = 0;
-        invert.value = 0;
-        blurred.value = 0;
-        opacity.value = 1;
+      if (response) {
+        console.log(response)
+        let clipStartTime = response.clipStartTime;
+        let startTime = seconds2time(clipStartTime);
+        setStartTimes(startTime);
+
+        let clipEndTime = response.clipEndTime;
+        let endTime = seconds2time(clipEndTime);
+        setEndTimes(endTime);
+
+        brightness.value = response.brightness;
+        contrast.value = response.contrast;
+        saturate.value = response.saturate;
+        grayscale.value = response.grayscale;
+        sepia.value = response.sepia;
+        hueRotate.value = response.hueRotate;
+        invert.value = response.invert;
+        blurred.value = response.blurred;
+        opacity.value = response.opacity;
+        leftRight.checked = response.leftRightReverse;
+        upDown.checked = response.upDownReverse;
+        hideControls.checked = response.hideControls;
         clipName.value = "";
-        leftRight.checked = false;
-        upDown.checked = false;
-        hideControls.checked = false;
       } else {
         console.log('リセットに失敗')
       };

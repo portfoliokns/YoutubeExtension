@@ -75,7 +75,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     resetController();
     setClipVideo(message.command);
     resetClipVideoTime();
-    sendResponse({ apply: true });
+    // sendResponse({ apply: true });
+    sendResponse({
+      brightness: brightness,
+      contrast: contrast,
+      saturate: saturate,
+      grayscale: grayscale,
+      sepia: sepia,
+      hueRotate: hueRotate,
+      invert: invert,
+      blurred: blurred,
+      opacity: opacity,
+      leftRightReverse: leftRightReverse,
+      upDownReverse: upDownReverse,
+      hideControls: hideControls,
+      clipStartTime: clipStartTime,
+      clipEndTime: clipEndTime,
+      isClipMode: isClipMode
+    });
     return true;
   }
 
@@ -262,13 +279,13 @@ function filtering() {
           'opacity(' + opacity + ')';
 }
 
+let observedVideoPlayer;
+let observerConnected = true; // 監視が接続されているかどうかのフラグ
+
 function isVideoPage() {
   // YouTubeの動画ページかクリップページかを判定
   return window.location.pathname.includes('/watch') || window.location.pathname.includes('/clip');
 }
-
-let observedVideoPlayer;
-let observerConnected = true; // 監視が接続されているかどうかのフラグ
 
 function observeVideoElement() {
   //トップページで動画要素が出現してしまうため、特定のページのみで処理を走らせる
@@ -385,10 +402,8 @@ function resetController() {
 }
 
 let isClipMode = false;
-let initClipStartTime = 0;
-let initClipEndTime = 60;
-let clipStartTime = initClipStartTime;
-let clipEndTime = initClipEndTime;
+let clipStartTime = 0;
+let clipEndTime = 0;
 function setClipVideo(request) {
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
@@ -470,8 +485,8 @@ function seeked(startTime, endTime) {
 }
 
 function resetClipVideoTime() {
-  clipStartTime = initClipStartTime;
-  clipEndTime = initClipEndTime;
+  clipStartTime = 0;
+  clipEndTime = videoPlayer.duration;
 }
 
 function playVideo() {
