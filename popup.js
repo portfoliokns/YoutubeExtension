@@ -339,11 +339,13 @@ document.addEventListener('keydown', function(event) {
   }
 
   let pressKey = event.key;
-  if ([' ', 'l', 'j', 'i', 'k'].includes(pressKey)) {
+  let keyList = [' ', 'l', 'j', 'i', 'k', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+  if (keyList.includes(pressKey)) {
     event.preventDefault();
   }
   
-  let command;
+  let command = "";
+  let number = "";
   switch (pressKey) {
     case ' ':
       command = "playStop"
@@ -372,13 +374,27 @@ document.addEventListener('keydown', function(event) {
     case 'ArrowDown':
       command = "downAudio"
       break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '0':
+      command = "setNumberTime"
+      number = pressKey;
+      console.log(command, number)
+      break;
     default:
       return;
   }
 
   if (command) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: command });
+      chrome.tabs.sendMessage(tabs[0].id, { command: command, number: number });
     });
   }
 });

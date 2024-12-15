@@ -47,6 +47,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if (message.command === "setNumberTime") {
+    let number = message.number;
+    setCurrentTime(number);
+    return;
+  }
+
   if (message.command === "getPlayerParameters" ) {
     sendResponse({
       brightness: brightness,
@@ -521,10 +527,15 @@ function backVideo() {
 let audioParams = 0.05;
 function upAudio() {
   let newVolume =  Math.min(videoPlayer.volume + audioParams, 1);
-  videoPlayer.volume = Math.round(newVolume * 100) / 100
+  videoPlayer.volume = Math.round(newVolume * 100) / 100;
 }
 
 function downAudio() {
   let newVolume =  Math.max(videoPlayer.volume - audioParams, 0);
-  videoPlayer.volume = Math.round(newVolume * 100) / 100
+  videoPlayer.volume = Math.round(newVolume * 100) / 100;
+}
+
+function setCurrentTime(number) {
+  let time = (videoPlayer.duration / 10) * number;
+  videoPlayer.currentTime = Math.round(time * 1000) / 1000;
 }
