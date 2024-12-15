@@ -79,7 +79,6 @@ resetButton.addEventListener("click", (event) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
       if (response) {
-        console.log(response)
         let clipStartTime = response.clipStartTime;
         let startTime = seconds2time(clipStartTime);
         setStartTimes(startTime);
@@ -132,7 +131,6 @@ clipSaveButton.addEventListener("click", (event) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "clipSave"}, (response) => {
       if (response?.url) {
-        
         let title = clipName.value;
         if (!title) { title = tabs[0].title; }
 
@@ -154,6 +152,12 @@ clipSaveButton.addEventListener("click", (event) => {
 
         let startTime = time2seconds(hhStart,mmStart,ssStart,msStart);
         let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd);
+        let maxSeconds = response.maxSeconds
+
+        if (endTime > maxSeconds) {
+          alert('プレーヤーの終了時間を超えた時刻を登録することはできません。')
+          return;
+        }
 
         fetch(response.url)
           .then((res) => res.blob())

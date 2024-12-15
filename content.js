@@ -75,7 +75,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     resetController();
     setClipVideo(message.command);
     resetClipVideoTime();
-    // sendResponse({ apply: true });
     sendResponse({
       brightness: brightness,
       contrast: contrast,
@@ -168,7 +167,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if (message.command === "camera" || message.command === "clipSave") {
+  
+
+  if (message.command === "clipSave") {
+    takePicture().then((url) => {
+      sendResponse({ url: url, maxSeconds: videoPlayer.duration });
+    }).catch((err) => {
+      console.log('撮影に失敗しました',err)
+      sendResponse({ url: null, maxSeconds: videoPlayer.duration });
+    });
+    return true;
+  }
+
+  if (message.command === "camera") {
     takePicture().then((url) => {
       sendResponse({ url: url });
     }).catch((err) => {
@@ -190,11 +201,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if ( message.command === "getNowSeconds") {
+  if (message.command === "getNowSeconds") {
     sendResponse({ seconds: videoPlayer.currentTime });
     return true;
   }
-
 });
 
 var initBrightness = 1;
