@@ -52,10 +52,7 @@ window.addEventListener('load', function() {
 
         let isClipMode = response.isClipMode
         if (isClipMode) {
-          clipSaveButton.disabled = false;
-          clipSaveButton.classList.remove("disabled");
-          clipResetButton.disabled = false;
-          clipResetButton.classList.remove("disabled");
+          buttonEnable();
         }
 
         clipName.value = JSON.parse(localStorage.getItem('clipName'));
@@ -100,6 +97,8 @@ resetButton.addEventListener("click", (event) => {
         upDown.checked = response.upDownReverse;
         hideControls.checked = response.hideControls;
         clipName.value = "";
+
+        buttonDisabled();
       } else {
         console.log('リセットに失敗')
       };
@@ -210,21 +209,15 @@ endTimeLabel.addEventListener("click", (event) => {
 clipApplyButton.addEventListener("click", (event) => {
   event.preventDefault();
 
-  sendClipApply()
-  clipSaveButton.disabled = false;
-  clipSaveButton.classList.remove("disabled");
-  clipResetButton.disabled = false;
-  clipResetButton.classList.remove("disabled");
+  sendClipApply();
+  buttonEnable();
 });
 
 clipResetButton.addEventListener("click", (event) => {
   event.preventDefault();
-
+  
   sendClipRelease();
-  clipSaveButton.disabled = true;
-  clipSaveButton.classList.add("disabled");
-  clipResetButton.disabled = true;
-  clipResetButton.classList.add("disabled");
+  buttonDisabled();
 });
 
 let isOpenFilters = false;
@@ -507,4 +500,18 @@ function url2videoID(url){
     if (url.includes('?si=')) videoID = url.split("?si=")[0].split("/")[3];
   }
   return videoID;
+}
+
+function buttonEnable() {
+  clipSaveButton.disabled = false;
+  clipSaveButton.classList.remove("disabled");
+  clipResetButton.disabled = false;
+  clipResetButton.classList.remove("disabled");
+}
+
+function buttonDisabled() {
+  clipSaveButton.disabled = true;
+  clipSaveButton.classList.add("disabled");
+  clipResetButton.disabled = true;
+  clipResetButton.classList.add("disabled");
 }
