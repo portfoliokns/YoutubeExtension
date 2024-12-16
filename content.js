@@ -47,6 +47,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
+  if (message.command === "setNumberTime") {
+    let number = message.number;
+    setCurrentTime(number);
+    return;
+  }
+
   if (message.command === "getPlayerParameters" ) {
     sendResponse({
       brightness: brightness,
@@ -75,7 +81,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     resetController();
     setClipVideo(message.command);
     resetClipVideoTime();
-    sendResponse({ apply: true });
+    sendResponse({
+      brightness: brightness,
+      contrast: contrast,
+      saturate: saturate,
+      grayscale: grayscale,
+      sepia: sepia,
+      hueRotate: hueRotate,
+      invert: invert,
+      blurred: blurred,
+      opacity: opacity,
+      leftRightReverse: leftRightReverse,
+      upDownReverse: upDownReverse,
+      hideControls: hideControls,
+      clipStartTime: clipStartTime,
+      clipEndTime: clipEndTime,
+      isClipMode: isClipMode
+    });
     return true;
   }
 
@@ -151,7 +173,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if (message.command === "camera" || message.command === "clipSave") {
+  
+
+  if (message.command === "clipSave") {
+    takePicture().then((url) => {
+      sendResponse({ url: url, maxSeconds: videoPlayer.duration });
+    }).catch((err) => {
+      console.log('撮影に失敗しました',err)
+      sendResponse({ url: null, maxSeconds: videoPlayer.duration });
+    });
+    return true;
+  }
+
+  if (message.command === "camera") {
     takePicture().then((url) => {
       sendResponse({ url: url });
     }).catch((err) => {
@@ -173,11 +207,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if ( message.command === "getNowSeconds") {
+  if (message.command === "getNowSeconds") {
     sendResponse({ seconds: videoPlayer.currentTime });
     return true;
   }
-
 });
 
 var initBrightness = 1;
@@ -262,13 +295,13 @@ function filtering() {
           'opacity(' + opacity + ')';
 }
 
+let observedVideoPlayer;
+let observerConnected = true; // 監視が接続されているかどうかのフラグ
+
 function isVideoPage() {
   // YouTubeの動画ページかクリップページかを判定
   return window.location.pathname.includes('/watch') || window.location.pathname.includes('/clip');
 }
-
-let observedVideoPlayer;
-let observerConnected = true; // 監視が接続されているかどうかのフラグ
 
 function observeVideoElement() {
   //トップページで動画要素が出現してしまうため、特定のページのみで処理を走らせる
@@ -385,10 +418,12 @@ function resetController() {
 }
 
 let isClipMode = false;
-let initClipStartTime = 0;
-let initClipEndTime = 60;
-let clipStartTime = initClipStartTime;
-let clipEndTime = initClipEndTime;
+let clipStartTime = 0;
+let clipEndTime
+if (videoPlayer) {
+  clipEndTime = videoPlayer.duration;
+}
+
 function setClipVideo(request) {
   if (!videoPlayer) {
     console.log("動画プレーヤーが見つかりませんでした");
@@ -470,8 +505,8 @@ function seeked(startTime, endTime) {
 }
 
 function resetClipVideoTime() {
-  clipStartTime = initClipStartTime;
-  clipEndTime = initClipEndTime;
+  clipStartTime = 0;
+  clipEndTime = videoPlayer.duration;
 }
 
 function playVideo() {
@@ -496,10 +531,15 @@ function backVideo() {
 let audioParams = 0.05;
 function upAudio() {
   let newVolume =  Math.min(videoPlayer.volume + audioParams, 1);
-  videoPlayer.volume = Math.round(newVolume * 100) / 100
+  videoPlayer.volume = Math.round(newVolume * 100) / 100;
 }
 
 function downAudio() {
   let newVolume =  Math.max(videoPlayer.volume - audioParams, 0);
-  videoPlayer.volume = Math.round(newVolume * 100) / 100
+  videoPlayer.volume = Math.round(newVolume * 100) / 100;
+}
+
+function setCurrentTime(number) {
+  let time = (videoPlayer.duration / 10) * number;
+  videoPlayer.currentTime = Math.round(time * 1000) / 1000;
 }

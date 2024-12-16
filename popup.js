@@ -52,10 +52,7 @@ window.addEventListener('load', function() {
 
         let isClipMode = response.isClipMode
         if (isClipMode) {
-          clipSaveButton.disabled = false;
-          clipSaveButton.classList.remove("disabled");
-          clipResetButton.disabled = false;
-          clipResetButton.classList.remove("disabled");
+          buttonEnable();
         }
 
         clipName.value = JSON.parse(localStorage.getItem('clipName'));
@@ -78,28 +75,30 @@ resetButton.addEventListener("click", (event) => {
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "reset" }, (response) => {
-      if (response?.apply) {
-        startTimeHh.value = 0;
-        startTimeMm.value = 0;
-        startTimeSs.value = 0;
-        startTimeMs.value = 0;
-        endTimeHh.value = 0;
-        endTimeMm.value = 1;
-        endTimeSs.value = 0;
-        endTimeMs.value = 0;
-        brightness.value = 1;
-        contrast.value = 1;
-        saturate.value = 1;
-        grayscale.value = 0;
-        sepia.value = 0;
-        hueRotate.value = 0;
-        invert.value = 0;
-        blurred.value = 0;
-        opacity.value = 1;
+      if (response) {
+        let clipStartTime = response.clipStartTime;
+        let startTime = seconds2time(clipStartTime);
+        setStartTimes(startTime);
+
+        let clipEndTime = response.clipEndTime;
+        let endTime = seconds2time(clipEndTime);
+        setEndTimes(endTime);
+
+        brightness.value = response.brightness;
+        contrast.value = response.contrast;
+        saturate.value = response.saturate;
+        grayscale.value = response.grayscale;
+        sepia.value = response.sepia;
+        hueRotate.value = response.hueRotate;
+        invert.value = response.invert;
+        blurred.value = response.blurred;
+        opacity.value = response.opacity;
+        leftRight.checked = response.leftRightReverse;
+        upDown.checked = response.upDownReverse;
+        hideControls.checked = response.hideControls;
         clipName.value = "";
-        leftRight.checked = false;
-        upDown.checked = false;
-        hideControls.checked = false;
+
+        buttonDisabled();
       } else {
         console.log('リセットに失敗')
       };
@@ -131,7 +130,6 @@ clipSaveButton.addEventListener("click", (event) => {
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     chrome.tabs.sendMessage(tabs[0].id, { command: "clipSave"}, (response) => {
       if (response?.url) {
-        
         let title = clipName.value;
         if (!title) { title = tabs[0].title; }
 
@@ -153,6 +151,12 @@ clipSaveButton.addEventListener("click", (event) => {
 
         let startTime = time2seconds(hhStart,mmStart,ssStart,msStart);
         let endTime = time2seconds(hhEnd,mmEnd,ssEnd,msEnd);
+        let maxSeconds = response.maxSeconds
+
+        if (endTime > maxSeconds) {
+          alert('プレーヤーの終了時間を超えた時刻を登録することはできません。')
+          return;
+        }
 
         fetch(response.url)
           .then((res) => res.blob())
@@ -205,21 +209,15 @@ endTimeLabel.addEventListener("click", (event) => {
 clipApplyButton.addEventListener("click", (event) => {
   event.preventDefault();
 
-  sendClipApply()
-  clipSaveButton.disabled = false;
-  clipSaveButton.classList.remove("disabled");
-  clipResetButton.disabled = false;
-  clipResetButton.classList.remove("disabled");
+  sendClipApply();
+  buttonEnable();
 });
 
 clipResetButton.addEventListener("click", (event) => {
   event.preventDefault();
-
+  
   sendClipRelease();
-  clipSaveButton.disabled = true;
-  clipSaveButton.classList.add("disabled");
-  clipResetButton.disabled = true;
-  clipResetButton.classList.add("disabled");
+  buttonDisabled();
 });
 
 let isOpenFilters = false;
@@ -334,11 +332,13 @@ document.addEventListener('keydown', function(event) {
   }
 
   let pressKey = event.key;
-  if ([' ', 'l', 'j', 'i', 'k'].includes(pressKey)) {
+  let keyList = [' ', 'l', 'j', 'i', 'k', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+  if (keyList.includes(pressKey)) {
     event.preventDefault();
   }
   
-  let command;
+  let command = "";
+  let number = "";
   switch (pressKey) {
     case ' ':
       command = "playStop"
@@ -367,13 +367,27 @@ document.addEventListener('keydown', function(event) {
     case 'ArrowDown':
       command = "downAudio"
       break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+    case '0':
+      command = "setNumberTime"
+      number = pressKey;
+      console.log(command, number)
+      break;
     default:
       return;
   }
 
   if (command) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      chrome.tabs.sendMessage(tabs[0].id, { command: command });
+      chrome.tabs.sendMessage(tabs[0].id, { command: command, number: number });
     });
   }
 });
@@ -486,4 +500,18 @@ function url2videoID(url){
     if (url.includes('?si=')) videoID = url.split("?si=")[0].split("/")[3];
   }
   return videoID;
+}
+
+function buttonEnable() {
+  clipSaveButton.disabled = false;
+  clipSaveButton.classList.remove("disabled");
+  clipResetButton.disabled = false;
+  clipResetButton.classList.remove("disabled");
+}
+
+function buttonDisabled() {
+  clipSaveButton.disabled = true;
+  clipSaveButton.classList.add("disabled");
+  clipResetButton.disabled = true;
+  clipResetButton.classList.add("disabled");
 }

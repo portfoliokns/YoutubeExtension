@@ -13,11 +13,11 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://*.youtube.com/*"],
+      "matches": ["https://www.youtube.com/*"],
       "js": ["content.js"]
     },
     {
-      "matches": ["http://localhost:6789/*"],
+      "matches": ["http://localhost:6789/clip_redirect*"],
       "js": ["content_LocalTube.js"]
     }
   ]
