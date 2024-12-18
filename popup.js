@@ -111,10 +111,10 @@ clipOpenButton.addEventListener("click", (event) =>{
   event.preventDefault();
 
   if (isOpenClip) {
-    clipOpenButton.value = "クリップ設定を表示"
+    clipOpenButton.value = "擬似クリップ設定を表示"
     clipSettings.style.display = "none";
   } else {
-    clipOpenButton.value = "クリップ設定を閉じる"
+    clipOpenButton.value = "擬似クリップ設定を閉じる"
     clipSettings.style.display = "block";
   }
   isOpenClip = !isOpenClip
@@ -504,15 +504,11 @@ function url2videoID(url){
 }
 
 function buttonEnable() {
-  clipSaveButton.disabled = false;
-  clipSaveButton.classList.remove("disabled");
   clipResetButton.disabled = false;
   clipResetButton.classList.remove("disabled");
 }
 
 function buttonDisabled() {
-  clipSaveButton.disabled = true;
-  clipSaveButton.classList.add("disabled");
   clipResetButton.disabled = true;
   clipResetButton.classList.add("disabled");
 }

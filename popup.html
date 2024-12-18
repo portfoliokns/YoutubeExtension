@@ -10,12 +10,12 @@
       <input type="submit" id="resetButton" class="" value="リセット">
     </form>
     <form action="#">
-      <input type="submit" id="clipOpenButton" class="" value="クリップ設定を表示">
+      <input type="submit" id="clipOpenButton" class="" value="擬似クリップ設定を表示">
     </form>
     <div id="clipSettings" class="hidden">
       <form action="#">
-        <input type="text" id="clipName" placeholder="クリップ名を記入">
-        <input type="submit" id="clipSaveButton" class="" value="保存(localserver連携)" disabled>
+        <input type="text" id="clipName" placeholder="擬似クリップ名を記入">
+        <input type="submit" id="clipSaveButton" class="" value="保存(擬似クリップ)">
       </form>
       <form action="#">
         <label for="startTime" id="startTimeLabel">開始時刻 hh:mm:ss:ms</label>
@@ -32,10 +32,10 @@
           <input type="number" id="endTimeSs" placeholder="ss" value="0" min="0" max="59" step="1"> :
           <input type="number" id="endTimeMs" placeholder="ms" value="0" min="0" max="999" step="100">
         </div>
-        <input type="submit" id="clipApplyButton" class="" value="クリップ適応">
+        <input type="submit" id="clipApplyButton" class="" value="擬似クリップ適応">
       </form>
       <form action="#">
-        <input type="submit" id="clipResetButton" class="" value="クリップ解除" disabled>
+        <input type="submit" id="clipResetButton" class="" value="擬似クリップ解除" disabled>
       </form>
     </div>
     <form action="#">
