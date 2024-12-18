@@ -169,7 +169,8 @@ clipSaveButton.addEventListener("click", (event) => {
             formData.append("end_time", endTime);
             formData.append("image", blob, "image.png");
 
-            fetch("http://localhost:6789/images", {
+            const port = 50000;
+            fetch(`http://localhost:${port}/images`, {
               method: "POST",
               body: formData,
               }

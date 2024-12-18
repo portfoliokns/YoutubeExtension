@@ -6,7 +6,7 @@
     "128": "icon-128.png"
   },
   "name": "YouTube動画拡張",
-  "version": "1.0",
+  "version": "1.1",
   "permissions": ["scripting", "activeTab", "storage"],
   "action": {
     "default_popup": "popup.html"
@@ -17,7 +17,7 @@
       "js": ["content.js"]
     },
     {
-      "matches": ["http://localhost:6789/clip_redirect*"],
+      "matches": ["http://localhost:50000/clip_redirect*"],
       "js": ["content_LocalTube.js"]
     }
   ]
