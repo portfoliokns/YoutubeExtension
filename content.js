@@ -1,23 +1,28 @@
-let videoPlayer = document.querySelector('video');
+let videoPlayer = document.querySelector("video");
 
-window.addEventListener('load', function() {
-  chrome.storage.local.get(['isClipMode', 'clipStartTime', 'clipEndTime'], function(result) {
-    if (result.isClipMode === undefined) { result.isClipMode = false }
+window.addEventListener("load", function () {
+  chrome.storage.local.get(
+    ["isClipMode", "clipStartTime", "clipEndTime"],
+    function (result) {
+      if (result.isClipMode === undefined) {
+        result.isClipMode = false;
+      }
 
-    if (result.isClipMode) {
-      clipStartTime = result.clipStartTime;
-      clipEndTime = result.clipEndTime;
-      setClipVideo("clip");
-      chrome.storage.local.set({ clipModeStart: 0 });
-      chrome.storage.local.set({ clipModeEnd: 60 });
-      chrome.storage.local.set({ isClipMode: false });
+      if (result.isClipMode) {
+        clipStartTime = result.clipStartTime;
+        clipEndTime = result.clipEndTime;
+        setClipVideo("clip");
+        chrome.storage.local.set({ clipModeStart: 0 });
+        chrome.storage.local.set({ clipModeEnd: 60 });
+        chrome.storage.local.set({ isClipMode: false });
+      }
     }
-  });
+  );
 
   //拡張機能を入れると同時に、上部の影は一切表示されなくなります。
-  const shadowTop = document.querySelector('.ytp-gradient-top');
+  const shadowTop = document.querySelector(".ytp-gradient-top");
   if (shadowTop) {
-    shadowTop.style.display = 'none';
+    shadowTop.style.display = "none";
   }
 });
 
@@ -28,11 +33,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.command === "forward") {
+    if (isAdvertisement()) return;
     forwardVideo();
     return;
   }
 
   if (message.command === "back") {
+    if (isAdvertisement()) return;
     backVideo();
     return;
   }
@@ -53,7 +60,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  if (message.command === "getPlayerParameters" ) {
+  if (message.command === "getPlayerParameters") {
     sendResponse({
       brightness: brightness,
       contrast: contrast,
@@ -69,7 +76,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       hideControls: hideControls,
       clipStartTime: clipStartTime,
       clipEndTime: clipEndTime,
-      isClipMode: isClipMode
+      isClipMode: isClipMode,
     });
     return true;
   }
@@ -96,7 +103,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       hideControls: hideControls,
       clipStartTime: clipStartTime,
       clipEndTime: clipEndTime,
-      isClipMode: isClipMode
+      isClipMode: isClipMode,
     });
     return true;
   }
@@ -156,13 +163,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.command === "leftRight") {
-    leftRightReverse = !leftRightReverse
+    leftRightReverse = !leftRightReverse;
     playerReverse();
     return;
   }
 
   if (message.command === "upDown") {
-    upDownReverse = !upDownReverse
+    upDownReverse = !upDownReverse;
     playerReverse();
     return;
   }
@@ -173,37 +180,39 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return;
   }
 
-  
-
   if (message.command === "clipSave") {
-    takePicture().then((url) => {
-      sendResponse({ url: url, maxSeconds: videoPlayer.duration });
-    }).catch((err) => {
-      console.log('撮影に失敗しました',err)
-      sendResponse({ url: null, maxSeconds: videoPlayer.duration });
-    });
+    takePicture()
+      .then((url) => {
+        sendResponse({ url: url, maxSeconds: videoPlayer.duration });
+      })
+      .catch((err) => {
+        console.log("撮影に失敗しました", err);
+        sendResponse({ url: null, maxSeconds: videoPlayer.duration });
+      });
     return true;
   }
 
   if (message.command === "camera") {
-    takePicture().then((url) => {
-      sendResponse({ url: url });
-    }).catch((err) => {
-      console.log('撮影に失敗しました',err)
-      sendResponse({ url: null });
-    });
+    takePicture()
+      .then((url) => {
+        sendResponse({ url: url });
+      })
+      .catch((err) => {
+        console.log("撮影に失敗しました", err);
+        sendResponse({ url: null });
+      });
     return true;
   }
 
   if (message.command === "clip") {
     clipStartTime = message.startTime;
     clipEndTime = message.endTime;
-    setClipVideo(message.command)
+    setClipVideo(message.command);
     return;
   }
 
   if (message.command === "clipEnd") {
-    setClipVideo(message.command)
+    setClipVideo(message.command);
     return;
   }
 
@@ -247,7 +256,7 @@ var opacity = initOpacity;
 
 function applyFilters() {
   if (videoPlayer) {
-    videoPlayer.style.filter = filtering()
+    videoPlayer.style.filter = filtering();
   } else {
     console.log("動画プレーヤーが見つかりませんでした");
   }
@@ -255,11 +264,11 @@ function applyFilters() {
 
 function takePicture() {
   if (videoPlayer) {
-    let canvas = document.createElement('canvas');
+    let canvas = document.createElement("canvas");
     canvas.width = videoPlayer.videoWidth;
     canvas.height = videoPlayer.videoHeight;
 
-    let ctx = canvas.getContext('2d');
+    let ctx = canvas.getContext("2d");
     if (leftRightReverse) {
       ctx.scale(-1, 1); // 左右反転
       ctx.translate(-canvas.width, 0);
@@ -268,31 +277,51 @@ function takePicture() {
       ctx.scale(1, -1); // 上下反転
       ctx.translate(0, -canvas.height);
     }
-    ctx.filter = filtering()
+    ctx.filter = filtering();
     ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height);
 
     return new Promise((resolve) => {
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         resolve(url);
-      }, 'image/png');
+      }, "image/png");
     });
   } else {
-    console.log('動画が見つかりません');
-    return Promise.reject('動画が見つかりません');
+    console.log("動画が見つかりません");
+    return Promise.reject("動画が見つかりません");
   }
 }
 
 function filtering() {
-  return 'brightness(' + brightness + ') ' +
-          'contrast(' + contrast + ') ' +
-          'saturate(' + saturate + ') ' +
-          'grayscale(' + grayscale + ')' +
-          'sepia(' + sepia + ')' + 
-          'hue-rotate(' + hueRotate + 'deg)' +
-          'invert(' + invert + ')' +
-          'blur(' + blurred + 'px)' +
-          'opacity(' + opacity + ')';
+  return (
+    "brightness(" +
+    brightness +
+    ") " +
+    "contrast(" +
+    contrast +
+    ") " +
+    "saturate(" +
+    saturate +
+    ") " +
+    "grayscale(" +
+    grayscale +
+    ")" +
+    "sepia(" +
+    sepia +
+    ")" +
+    "hue-rotate(" +
+    hueRotate +
+    "deg)" +
+    "invert(" +
+    invert +
+    ")" +
+    "blur(" +
+    blurred +
+    "px)" +
+    "opacity(" +
+    opacity +
+    ")"
+  );
 }
 
 let observedVideoPlayer;
@@ -300,28 +329,33 @@ let observerConnected = true; // 監視が接続されているかどうかの�
 
 function isVideoPage() {
   // YouTubeの動画ページかクリップページかを判定
-  return window.location.pathname.includes('/watch') || window.location.pathname.includes('/clip');
+  return (
+    window.location.pathname.includes("/watch") ||
+    window.location.pathname.includes("/clip")
+  );
 }
 
 function observeVideoElement() {
   //トップページで動画要素が出現してしまうため、特定のページのみで処理を走らせる
   if (!isVideoPage()) {
-    console.log('動画ページではないため、処理をスキップ');
+    console.log("動画ページではないため、処理をスキップ");
     return;
   }
 
-  observedVideoPlayer = document.querySelector('video');
+  observedVideoPlayer = document.querySelector("video");
   if (observedVideoPlayer && observerConnected) {
     // 動画が再生中である場合のみ処理を実行
     if (!observedVideoPlayer.paused) {
-      observedVideoPlayer.addEventListener('loadeddata', function() {
-        if (videoPlayer === null) { videoPlayer = document.querySelector('video') };
+      observedVideoPlayer.addEventListener("loadeddata", function () {
+        if (videoPlayer === null) {
+          videoPlayer = document.querySelector("video");
+        }
         resetFilters();
         applyFilters();
         resetPlayerReverse();
         resetController();
         setClipVideo("reset");
-        console.log('動画のフィルターやパラメータをリセットしました');
+        console.log("動画のフィルターやパラメータをリセットしました");
       });
 
       // 最初に動画要素が見つかったときのみ監視を停止
@@ -331,14 +365,14 @@ function observeVideoElement() {
       }
     }
   } else {
-    console.log('動画が見つかりません');
+    console.log("動画が見つかりません");
   }
 }
 
 // DOMの変更を監視
 const observer = new MutationObserver((mutations) => {
   for (let mutation of mutations) {
-    if (mutation.type === 'childList') {
+    if (mutation.type === "childList") {
       // 新しい動画要素が読み込まれた可能性があるためチェック
       observeVideoElement();
     }
@@ -356,7 +390,7 @@ function playerReverse() {
     return;
   }
 
-  let scale
+  let scale;
   if (leftRightReverse & upDownReverse) {
     scale = "scale(-1, -1)";
   } else if (!leftRightReverse & upDownReverse) {
@@ -374,52 +408,78 @@ function resetPlayerReverse() {
     console.log("動画プレーヤーが見つかりませんでした");
     return;
   }
-  
+
   leftRightReverse = false;
   upDownReverse = false;
   videoPlayer.style.transform = "scale(1, 1)";
 }
 
 let hideControls = false;
-const shadowBottom = document.querySelector('.ytp-gradient-bottom');
-const controller = document.querySelector('.ytp-chrome-bottom');
-const icon = document.querySelector('.branding-img');
-const container = document.querySelector('.ytp-chrome-top');
-const endScreenElements = document.querySelectorAll('[class^="ytp-ce-element"]');
+const shadowBottom = document.querySelector(".ytp-gradient-bottom");
+const controller = document.querySelector(".ytp-chrome-bottom");
+const icon = document.querySelector(".branding-img");
+const container = document.querySelector(".ytp-chrome-top");
+const endScreenElements = document.querySelectorAll(
+  '[class^="ytp-ce-element"]'
+);
 function hideController() {
   if (hideControls) {
-    if (shadowBottom) {shadowBottom.style.display = 'none' };
-    if (controller) {controller.style.display = 'none';};
-    if (icon) {icon.style.display = 'none';};
-    if (container) {container.style.display = 'none';};
-    endScreenElements.forEach(element => {
-      element.style.display = 'none';
+    if (shadowBottom) {
+      shadowBottom.style.display = "none";
+    }
+    if (controller) {
+      controller.style.display = "none";
+    }
+    if (icon) {
+      icon.style.display = "none";
+    }
+    if (container) {
+      container.style.display = "none";
+    }
+    endScreenElements.forEach((element) => {
+      element.style.display = "none";
     });
   } else {
-    if (shadowBottom) {shadowBottom.style.display = 'block' };
-    if (controller) {controller.style.display = 'block';};
-    if (icon) {icon.style.display = 'block';};
-    if (container) {container.style.display = 'block';};
-    endScreenElements.forEach(element => {
-      element.style.display = 'block';
+    if (shadowBottom) {
+      shadowBottom.style.display = "block";
+    }
+    if (controller) {
+      controller.style.display = "block";
+    }
+    if (icon) {
+      icon.style.display = "block";
+    }
+    if (container) {
+      container.style.display = "block";
+    }
+    endScreenElements.forEach((element) => {
+      element.style.display = "block";
     });
   }
 }
 
 function resetController() {
-  if (shadowBottom) {shadowBottom.style.display = 'block' };
-  if (controller) {controller.style.display = 'block';};
-  if (icon) {icon.style.display = 'block';};
-  if (container) {container.style.display = 'block';};
-  endScreenElements.forEach(element => {
-    element.style.display = 'block';
+  if (shadowBottom) {
+    shadowBottom.style.display = "block";
+  }
+  if (controller) {
+    controller.style.display = "block";
+  }
+  if (icon) {
+    icon.style.display = "block";
+  }
+  if (container) {
+    container.style.display = "block";
+  }
+  endScreenElements.forEach((element) => {
+    element.style.display = "block";
   });
   hideControls = false;
 }
 
 let isClipMode = false;
 let clipStartTime = 0;
-let clipEndTime
+let clipEndTime;
 if (videoPlayer) {
   clipEndTime = videoPlayer.duration;
 }
@@ -431,10 +491,12 @@ function setClipVideo(request) {
   }
 
   if (request === "clip") {
-    resetClipVideo();
-    applyClipVideo(clipStartTime, clipEndTime);
-    seekToTimeClipVideo(clipStartTime);
-    isClipMode = true;
+    if (!isAdvertisement()) {
+      resetClipVideo();
+      applyClipVideo(clipStartTime, clipEndTime);
+      seekToTimeClipVideo(clipStartTime);
+      isClipMode = true;
+    }
   } else {
     resetClipVideo();
     resetClipVideoTime();
@@ -444,8 +506,10 @@ function setClipVideo(request) {
 
 let playListener, timeupdateListener, seekedListener;
 function applyClipVideo(startTime, endTime) {
-
-  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
+  if (
+    videoPlayer.currentTime < startTime ||
+    videoPlayer.currentTime >= endTime
+  ) {
     videoPlayer.currentTime = startTime;
   }
 
@@ -482,12 +546,16 @@ function seekToTimeClipVideo(startTime) {
 
 function resetClipVideo() {
   if (playListener) videoPlayer.removeEventListener("play", playListener);
-  if (timeupdateListener) videoPlayer.removeEventListener("timeupdate", timeupdateListener);
+  if (timeupdateListener)
+    videoPlayer.removeEventListener("timeupdate", timeupdateListener);
   if (seekedListener) videoPlayer.removeEventListener("seeked", seekedListener);
 }
 
 function play(startTime, endTime) {
-  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime >= endTime) {
+  if (
+    videoPlayer.currentTime < startTime ||
+    videoPlayer.currentTime >= endTime
+  ) {
     videoPlayer.currentTime = startTime;
   }
 }
@@ -499,7 +567,10 @@ function timeupdate(startTime, endTime) {
 }
 
 function seeked(startTime, endTime) {
-  if (videoPlayer.currentTime < startTime || videoPlayer.currentTime > endTime) {
+  if (
+    videoPlayer.currentTime < startTime ||
+    videoPlayer.currentTime > endTime
+  ) {
     videoPlayer.currentTime = startTime;
   }
 }
@@ -530,16 +601,25 @@ function backVideo() {
 
 let audioParams = 0.05;
 function upAudio() {
-  let newVolume =  Math.min(videoPlayer.volume + audioParams, 1);
+  let newVolume = Math.min(videoPlayer.volume + audioParams, 1);
   videoPlayer.volume = Math.round(newVolume * 100) / 100;
 }
 
 function downAudio() {
-  let newVolume =  Math.max(videoPlayer.volume - audioParams, 0);
+  let newVolume = Math.max(videoPlayer.volume - audioParams, 0);
   videoPlayer.volume = Math.round(newVolume * 100) / 100;
 }
 
 function setCurrentTime(number) {
   let time = (videoPlayer.duration / 10) * number;
   videoPlayer.currentTime = Math.round(time * 1000) / 1000;
+}
+
+function isAdvertisement() {
+  const advertisement = document.querySelector(".ytp-ad-player-overlay-layout");
+  if (advertisement) {
+    return true;
+  } else {
+    return false;
+  }
 }
