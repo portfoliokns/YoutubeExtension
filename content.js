@@ -1,4 +1,5 @@
 let videoPlayer = document.querySelector("video");
+let commentsTable = [];
 
 window.addEventListener("load", function () {
   chrome.storage.local.get(
@@ -24,6 +25,9 @@ window.addEventListener("load", function () {
   if (shadowTop) {
     shadowTop.style.display = "none";
   }
+
+  //コメント取得
+  getAllComments();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -355,6 +359,7 @@ function observeVideoElement() {
         resetPlayerReverse();
         resetController();
         setClipVideo("reset");
+        getAllComments();
         console.log("動画のフィルターやパラメータをリセットしました");
       });
 
@@ -623,3 +628,167 @@ function isAdvertisement() {
     return false;
   }
 }
+
+function url2videoID(url) {
+  let videoID;
+  if (URL.canParse(url)) {
+    const url_instance = new URL(url);
+    videoID = url_instance.searchParams.get("v");
+    if (url.includes("?si=")) videoID = url.split("?si=")[0].split("/")[3];
+  }
+  return videoID;
+}
+
+function addCommentUI() {
+  const ui = document.createElement("div");
+  ui.id = "comment-input-ui";
+  ui.innerHTML = `
+    <input type="text" id="comment-text" placeholder="コメントを書く" />
+    <button id="comment-send">送信</button>
+  `;
+  ui.style.marginTop = "12px";
+  ui.style.padding = "10px";
+  ui.style.background = "rgba(0, 0, 0, 0.7)";
+  ui.style.color = "white";
+  ui.style.borderRadius = "5px";
+  ui.style.display = "flex";
+  ui.style.alignItems = "center";
+  ui.style.position = "relative";
+  ui.style.zIndex = "9999";
+  ui.style.width = "100%";
+
+  const input = ui.querySelector("#comment-text");
+  input.style.flexGrow = "1";
+  input.style.padding = "8px";
+  input.style.margin = "8px";
+  input.style.border = "1px solid #ccc";
+  input.style.borderRadius = "4px";
+  input.style.backgroundColor = "#fff";
+  input.style.color = "#333";
+
+  const button = ui.querySelector("#comment-send");
+  button.style.padding = "8px 16px";
+  button.style.backgroundColor = "#4CAF50";
+  button.style.color = "white";
+  button.style.border = "none";
+  button.style.borderRadius = "4px";
+  button.style.cursor = "pointer";
+
+  const target =
+    document.querySelector("#below") ||
+    document.querySelector("#primary-inner");
+  if (target && !document.getElementById("comment-input-ui")) {
+    target.prepend(ui);
+
+    const button = ui.querySelector("#comment-send");
+    if (button) {
+      button.addEventListener("click", () => {
+        const text = ui.querySelector("#comment-text").value;
+        saveComments(text);
+        if (text) {
+          showFloatingComment(text);
+          ui.querySelector("#comment-text").value = "";
+        }
+      });
+    }
+  }
+}
+
+const interval = setInterval(() => {
+  if (videoPlayer) {
+    clearInterval(interval);
+    setTimeout(addCommentUI, 1000);
+  }
+}, 1000);
+
+function saveComments(text) {
+  const youtubeUrl = window.location.href;
+  const videoID = url2videoID(youtubeUrl);
+  let time = Math.round(videoPlayer.currentTime * 10) / 10 - 2;
+  if (time < 0) {
+    time = 0;
+  }
+
+  const formData = new FormData();
+  formData.append("comment", text);
+  formData.append("videoID", videoID);
+  formData.append("time", time);
+
+  const port = 50000;
+  fetch(`http://localhost:${port}/comments`, {
+    method: "POST",
+    body: formData,
+  }).then((response) => {
+    console.log("保存");
+  });
+}
+
+function showFloatingComment(text) {
+  playerHeight = videoPlayer.getBoundingClientRect().height;
+  const fontSize = 40;
+  let topPosition = Math.floor(Math.random() * (playerHeight - fontSize));
+  const comment = document.createElement("div");
+  comment.textContent = text;
+  comment.style.position = "absolute";
+  comment.style.top = `${topPosition}px`;
+  comment.style.whiteSpace = "nowrap";
+  comment.style.fontSize = `${fontSize}px`;
+  comment.style.fontWeight = "bold";
+  comment.style.color = "white";
+  comment.style.textShadow = "2px 2px 4px rgba(0, 0, 0, 0.7)";
+  comment.style.animation = "marquee 7s linear";
+  comment.addEventListener("animationend", () => {
+    comment.remove();
+  });
+
+  const style = document.createElement("style");
+  style.textContent = `
+        @keyframes marquee {
+          from { transform: translateX(100vw); }
+          to { transform: translateX(-100%); }
+        }`;
+  document.head.appendChild(style);
+
+  const player = videoPlayer.parentElement;
+  player.appendChild(comment);
+
+  setTimeout(() => {
+    comment.remove();
+  }, 10000);
+}
+
+function getAllComments() {
+  const youtubeUrl = window.location.href;
+  const videoID = url2videoID(youtubeUrl);
+  fetch(`http://localhost:50000/comments?videoID=${videoID}`)
+    .then((res) => res.json())
+    .then((data) => {
+      commentsTable = data;
+      console.log(data);
+    });
+}
+
+let lastTime = 0;
+let shownComments = new Set();
+setInterval(() => {
+  if (!videoPlayer) {
+    console.log("動画プレーヤーが見つかりません");
+    return;
+  }
+
+  const currentTime = Math.round(videoPlayer.currentTime * 10) / 10;
+  if (currentTime < lastTime) {
+    shownComments.clear();
+  }
+  lastTime = currentTime;
+
+  commentsTable.forEach(({ comment, time }) => {
+    if (
+      Math.abs(time - currentTime) < 0.1 &&
+      !shownComments.has(time + comment)
+    ) {
+      showFloatingComment(comment);
+      shownComments.add(time + comment);
+    }
+  });
+}, 100);
