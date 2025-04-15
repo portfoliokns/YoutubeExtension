@@ -680,7 +680,12 @@ function addCommentUI() {
   if (target && !document.getElementById("comment-input-ui")) {
     target.prepend(ui);
 
-    const button = ui.querySelector("#comment-send");
+    input.addEventListener("focus", () => {
+      if (videoPlayer && !videoPlayer.paused) {
+        videoPlayer.pause();
+      }
+    });
+
     if (button) {
       button.addEventListener("click", () => {
         const text = ui.querySelector("#comment-text").value;
@@ -688,6 +693,9 @@ function addCommentUI() {
         if (text) {
           showFloatingComment(text);
           ui.querySelector("#comment-text").value = "";
+        }
+        if (videoPlayer && videoPlayer.paused) {
+          videoPlayer.play();
         }
       });
     }
@@ -745,7 +753,7 @@ function showFloatingComment(text) {
   style.textContent = `
         @keyframes marquee {
           from { transform: translateX(100vw); }
-          to { transform: translateX(-100%); }
+          to { transform: translateX(-300%); }
         }`;
   document.head.appendChild(style);
 
@@ -754,7 +762,7 @@ function showFloatingComment(text) {
 
   setTimeout(() => {
     comment.remove();
-  }, 10000);
+  }, 70000);
 }
 
 function getAllComments() {
