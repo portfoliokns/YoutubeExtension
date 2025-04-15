@@ -26,8 +26,9 @@ window.addEventListener("load", function () {
     shadowTop.style.display = "none";
   }
 
-  //コメント取得
+  //コメント関連の初期設定
   getAllComments();
+  removeFloatingComments();
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -360,6 +361,7 @@ function observeVideoElement() {
         resetController();
         setClipVideo("reset");
         getAllComments();
+        removeFloatingComments();
         console.log("動画のフィルターやパラメータをリセットしました");
       });
 
@@ -736,6 +738,7 @@ function showFloatingComment(text) {
   const fontSize = 40;
   let topPosition = Math.floor(Math.random() * (playerHeight - fontSize));
   const comment = document.createElement("div");
+  comment.classList.add("floating-comment");
   comment.textContent = text;
   comment.style.position = "absolute";
   comment.style.top = `${topPosition}px`;
@@ -763,6 +766,11 @@ function showFloatingComment(text) {
   setTimeout(() => {
     comment.remove();
   }, 70000);
+}
+
+function removeFloatingComments() {
+  const comments = document.querySelectorAll(".floating-comment");
+  comments.forEach((el) => el.remove());
 }
 
 function getAllComments() {
